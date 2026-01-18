@@ -156,7 +156,7 @@ Main endpoints:
 ### 1️⃣ Clone the repository
 
 ```bash
-git clone https://github.com/yourusername/foodingo.git
+git clone https://github.com/ritikch027/foodingo-.git
 cd foodingo
 ```
 
