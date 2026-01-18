@@ -10,93 +10,108 @@ import {
 } from 'react-native';
 import api from './utils/api';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect, useContext, useCallback } from 'react';
 import RenderCategories from './components/RenderCategories';
 import Fontisto from 'react-native-vector-icons/Fontisto';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import Entypo from 'react-native-vector-icons/Entypo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import RenderOffer from './components/RenderOffer';
 import { UserContext } from './utils/userContext';
 import Loader from './utils/Loader';
 import Toast from 'react-native-toast-message';
 
+import Animated, { FadeInDown, Layout } from 'react-native-reanimated';
+
 const screenWidth = Dimensions.get('window').width;
 
 const Home = ({ navigation }) => {
   const insets = useSafeAreaInsets();
-  const { user, setUser, mappedItems, isLoggedIn } = useContext(UserContext);
+  const { user, setUser, mappedItems } = useContext(UserContext);
   const totalItems = mappedItems.reduce((sum, item) => sum + item.quantity, 0);
-  const [loadingUser, setLoadingUser] = useState(true);
 
+  const [loading, setLoading] = useState(true);
   const [offers, setOffers] = useState([]);
   const [restaurants, setRestaurants] = useState([]);
 
-  const getData = async () => {
-    try {
-      const token = await AsyncStorage.getItem('token');
-      const res = await api.post('/userdata', { token });
+  /* ---------------- CACHE HELPERS ---------------- */
 
-      if (res.data && res.data.userData) {
-        setUser(res.data.userData);
-      }
+  const cacheSet = async (key, data) => {
+    try {
+      await AsyncStorage.setItem(key, JSON.stringify(data));
     } catch (err) {
-      console.error('Failed to fetch user data:', err);
-    } finally {
-      setLoadingUser(false);
+      console.log('Cache write error:', err);
     }
   };
 
-  const fetchOffers = async () => {
+  const cacheGet = async key => {
     try {
-      const res = await api.get('/offers');
-      setOffers(res.data);
-    } catch (error) {
-      console.error('Error fetching offers:', error);
+      const value = await AsyncStorage.getItem(key);
+      return value ? JSON.parse(value) : null;
+    } catch (err) {
+      return null;
     }
   };
 
-  const fetchRestaurants = async () => {
+  /* ---------------- DATA FETCH ---------------- */
+
+  const fetchAll = async () => {
     try {
-      const res = await api.get('/restaurants');
-      setRestaurants(res.data);
+      // Load cache instantly
+      const cachedOffers = await cacheGet('offers');
+      const cachedRestaurants = await cacheGet('restaurants');
+
+      if (cachedOffers) setOffers(cachedOffers);
+      if (cachedRestaurants) setRestaurants(cachedRestaurants);
+
+      const token = await AsyncStorage.getItem('token');
+
+      const requests = [api.get('/offers'), api.get('/restaurants')];
+
+      if (token) {
+        requests.push(api.post('/userdata', { token }));
+      }
+
+      const [offersRes, restaurantsRes, userRes] = await Promise.all(requests);
+
+      setOffers(offersRes.data);
+      setRestaurants(restaurantsRes.data);
+
+      await cacheSet('offers', offersRes.data);
+      await cacheSet('restaurants', restaurantsRes.data);
+
+      if (userRes?.data?.userData) {
+        setUser(userRes.data.userData);
+      }
     } catch (error) {
       Toast.show({
         type: 'error',
-        text1: error,
-        text2: 'Failed to fetch restaurants',
+        text1: 'Network Error',
+        text2: 'Unable to refresh data',
       });
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    const checkIfLoggedIn = async () => {
-      const token = await AsyncStorage.getItem('token');
-      if (!token) {
-        // Don't call getData or show any toast
-        return;
-      }
-      // Safe to fetch user
-      getData();
-    };
-
-    checkIfLoggedIn();
-    fetchOffers();
-    fetchRestaurants();
+    fetchAll();
   }, []);
+
+  /* ---------------- UI ---------------- */
 
   const HeaderTop = () => (
     <View>
-      <View style={{ ...styles.headerTopRow, marginTop: insets.top }}>
+      <View style={[styles.headerTopRow, { marginTop: insets.top }]}>
         <Fontisto
           onPress={() => navigation.openDrawer()}
           name="nav-icon-list-a"
-          size={19}
-          color="rgb(2, 2, 2)"
+          size={20}
+          color="#111827"
         />
+
         <Pressable onPress={() => navigation.navigate('Cart')}>
-          <Ionicons name="cart" size={30} color="rgb(0, 0, 0)" />
+          <Ionicons name="cart" size={28} color="#111827" />
           {totalItems > 0 && (
             <View style={styles.badge}>
               <Text style={styles.badgeText}>{totalItems}</Text>
@@ -104,21 +119,21 @@ const Home = ({ navigation }) => {
           )}
         </Pressable>
       </View>
-      <Text style={styles.greet}>
-        Hii {user?.name || 'Guest'}.....
-        <Text style={styles.greetHighlight}>Welcome to Foodingo</Text>
-      </Text>
-      <Text style={styles.heading}>Find Your Favourites</Text>
+
+      <Text style={styles.greet}>Hi {user?.name || 'Guest'} 👋</Text>
+
+      <Text style={styles.heading}>Find your favourite food</Text>
+
       <View style={styles.searchBar}>
-        <TextInput style={styles.input} placeholder="Search" />
-        <Fontisto
-          name="search"
-          style={styles.searchIcon}
-          size={30}
-          color="#900"
+        <Fontisto name="search" size={18} color="#6b7280" />
+        <TextInput
+          style={styles.input}
+          placeholder="Search for restaurants or food"
+          placeholderTextColor="#9ca3af"
         />
       </View>
-      <Text style={styles.heading}>What's on your mind?</Text>
+
+      <Text style={styles.sectionTitle}>What's on your mind?</Text>
     </View>
   );
 
@@ -126,13 +141,49 @@ const Home = ({ navigation }) => {
 
   const HeaderBottom = () => (
     <View>
-      <Text style={styles.subHeading}>Best Offers</Text>
+      <Text style={styles.sectionTitle}>Best Offers</Text>
       <RenderOffer items={offers} />
-      <Text style={styles.subHeading}>Restaurants Near You</Text>
+      <Text style={styles.sectionTitle}>Restaurants Near You</Text>
     </View>
   );
 
-  if (loadingUser) return <Loader />;
+  const renderItem = useCallback(
+    ({ item, index }) => (
+      <Animated.View
+        entering={FadeInDown.delay(index * 80)}
+        layout={Layout.springify()}
+        style={styles.card}
+      >
+        <Pressable
+          onPress={() =>
+            navigation.navigate('RestaurantItems', { restaurant: item })
+          }
+        >
+          <Image source={{ uri: item.image.url }} style={styles.listImg} />
+
+          <View style={styles.deliveryBadge}>
+            <Ionicons name="time" size={14} color="#fff" />
+            <Text style={styles.deliveryText}>{item.deliveryTime} mins</Text>
+          </View>
+
+          <View style={styles.infoContainer}>
+            <Text style={styles.nameText}>{item.name}</Text>
+
+            <View style={styles.location}>
+              <Text style={styles.locationText}>{item.location}</Text>
+              <View style={styles.ratingBadge}>
+                <FontAwesome name="star" size={12} color="#facc15" />
+                <Text style={styles.ratingText}>{item.rating}</Text>
+              </View>
+            </View>
+          </View>
+        </Pressable>
+      </Animated.View>
+    ),
+    [],
+  );
+
+  if (loading && restaurants.length === 0) return <Loader />;
 
   return (
     <View style={styles.container}>
@@ -148,42 +199,9 @@ const Home = ({ navigation }) => {
         keyExtractor={item => item._id}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
-          ...styles.flatListContent,
-          paddingBottom: insets.bottom,
+          paddingBottom: insets.bottom + 40,
         }}
-        renderItem={({ item }) => (
-          <Pressable
-            style={styles.card1}
-            onPress={() =>
-              navigation.navigate('RestaurantItems', { restaurant: item })
-            }
-          >
-            <View style={styles.itemContainer}>
-              <Image source={{ uri: item.image.url }} style={styles.listImg} />
-              <View style={styles.deliveryTime}>
-                <Ionicons name="time" size={17} color="rgb(113, 109, 93)" />
-                <Text style={styles.deliveryText}>
-                  {item.deliveryTime} mins
-                </Text>
-              </View>
-              <View style={styles.infoContainer}>
-                <Text style={styles.nameText}>{item.name}</Text>
-                <View style={styles.location}>
-                  <Text>{item.location} | </Text>
-                  <Entypo name="location" size={14} color="rgb(84, 79, 59)" />
-                  <Text style={styles.rating}>
-                    <FontAwesome
-                      name="star"
-                      size={14}
-                      color="rgb(193, 169, 65)"
-                    />
-                    {item.rating}
-                  </Text>
-                </View>
-              </View>
-            </View>
-          </Pressable>
-        )}
+        renderItem={renderItem}
       />
     </View>
   );
@@ -191,127 +209,142 @@ const Home = ({ navigation }) => {
 
 export default Home;
 
+/* ---------------- STYLES ---------------- */
+
 const styles = StyleSheet.create({
   container: {
-    flexGrow: 1,
-    backgroundColor: 'rgb(255, 250, 245)',
+    flex: 1,
+    backgroundColor: '#f9fafb',
   },
+
   headerTopRow: {
-    marginLeft: '5%',
+    marginHorizontal: 20,
     flexDirection: 'row',
-    width: screenWidth * 0.9,
     alignItems: 'center',
     justifyContent: 'space-between',
-    borderBottomColor: '#D9D9D9',
+    paddingBottom: 14,
+    borderBottomColor: '#e5e7eb',
     borderBottomWidth: 1,
-    paddingBottom: 10,
   },
+
   greet: {
-    fontSize: 26,
-    color: '#5A3E36',
-    marginTop: '4%',
-    fontFamily: 'cursive',
-    marginLeft: '5%',
-    fontWeight: '600',
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#111827',
+    marginTop: 20,
+    marginLeft: 20,
   },
-  greetHighlight: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
+
   heading: {
+    fontSize: 16,
+    color: '#6b7280',
+    marginTop: 6,
+    marginLeft: 20,
+  },
+
+  sectionTitle: {
     fontSize: 20,
-    color: '#333333',
-    alignSelf: 'flex-start',
-    marginTop: '5%',
-    fontWeight: '600',
-    marginLeft: '5%',
+    fontWeight: '700',
+    color: '#111827',
+    marginTop: 24,
+    marginLeft: 20,
   },
-  subHeading: {
-    fontSize: 18,
-    color: '#3E3E3E',
-    fontWeight: 'bold',
-    marginTop: 10,
-    marginLeft: '5%',
-  },
+
   searchBar: {
     flexDirection: 'row',
-    width: screenWidth * 0.9,
     alignItems: 'center',
-    marginTop: '2%',
-    borderRadius: 12,
-    paddingHorizontal: 15,
-    marginLeft: '5%',
-    backgroundColor: '#F3F3F3',
+    marginTop: 16,
+    marginHorizontal: 20,
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    backgroundColor: '#fff',
     borderWidth: 1,
-    borderColor: '#DDD',
+    borderColor: '#e5e7eb',
+    height: 52,
   },
+
   input: {
     fontSize: 16,
     flex: 1,
-    height: 50,
-    borderRightColor: '#DDD',
-    borderRightWidth: 1,
-    paddingRight: 10,
+    marginLeft: 10,
+    color: '#111827',
   },
-  searchIcon: {
-    paddingLeft: 10,
-  },
-  flatListContent: {
-    width: screenWidth,
-    alignItems: 'center',
-  },
-  itemContainer: {
-    width: screenWidth * 0.9,
-    borderWidth: 1,
-    borderColor: '#F0ECE3',
-    marginBottom: 20,
-    borderRadius: 12,
-    backgroundColor: '#FFF7F0',
+
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    marginBottom: 18,
     overflow: 'hidden',
-    elevation: 1,
+    elevation: 3,
+    marginHorizontal: 20,
   },
+
   listImg: {
     width: '100%',
     height: 180,
   },
-  deliveryTime: {
+
+  deliveryBadge: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    backgroundColor: '#4f46e5',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
     flexDirection: 'row',
     alignItems: 'center',
-    position: 'absolute',
-    top: 10,
-    left: 10,
-    backgroundColor: 'rgba(255,255,255,0.9)',
-    padding: 5,
-    borderRadius: 15,
+    gap: 6,
   },
+
   deliveryText: {
-    fontSize: 14,
-    marginLeft: 5,
-    fontWeight: 'bold',
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 12,
   },
+
   infoContainer: {
-    padding: 10,
+    padding: 14,
   },
+
   nameText: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#4E342E',
+    fontWeight: '700',
+    color: '#111827',
   },
+
   location: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 5,
+    justifyContent: 'space-between',
+    marginTop: 6,
   },
-  rating: {
-    marginLeft: 5,
-    fontSize: 14,
-    color: '#444',
+
+  locationText: {
+    color: '#6b7280',
   },
+
+  ratingBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fef3c7',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 10,
+    gap: 4,
+  },
+
+  ratingText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#92400e',
+  },
+
   badge: {
     position: 'absolute',
-    top: -5,
+    top: -6,
     right: -10,
-    backgroundColor: '#FFD700',
+    backgroundColor: '#ef4444',
     borderRadius: 12,
     paddingHorizontal: 6,
     paddingVertical: 2,
@@ -319,9 +352,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+
   badgeText: {
-    color: '#000',
-    fontWeight: 'bold',
+    color: '#fff',
+    fontWeight: '700',
     fontSize: 12,
   },
 });

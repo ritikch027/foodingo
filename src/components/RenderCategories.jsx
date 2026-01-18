@@ -1,4 +1,4 @@
-import { React, useContext } from 'react';
+import React, { useContext } from 'react';
 import { UserContext } from '../utils/userContext';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -10,9 +10,34 @@ import {
   Pressable,
 } from 'react-native';
 
+import Animated, { FadeInRight, Layout } from 'react-native-reanimated';
+
 const RenderCategories = () => {
   const navigation = useNavigation();
   const { foodItems } = useContext(UserContext);
+
+  const renderItem = ({ item, index }) => (
+    <Animated.View
+      entering={FadeInRight.delay(index * 60)}
+      layout={Layout.springify()}
+      style={styles.card}
+    >
+      <Pressable
+        onPress={() =>
+          navigation.navigate('CategoryItem', { category: item.category })
+        }
+        style={({ pressed }) => [styles.cardInner, pressed && { opacity: 0.8 }]}
+      >
+        <View style={styles.imageWrap}>
+          <Image source={{ uri: item.image.url }} style={styles.image} />
+        </View>
+
+        <Text style={styles.text} numberOfLines={2}>
+          {item.category.charAt(0).toUpperCase() + item.category.slice(1)}
+        </Text>
+      </Pressable>
+    </Animated.View>
+  );
 
   return (
     <View style={styles.wrapper}>
@@ -22,19 +47,7 @@ const RenderCategories = () => {
         keyExtractor={item => item._id}
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.flatListContent}
-        renderItem={({ item }) => (
-          <Pressable
-            onPress={() =>
-              navigation.navigate('CategoryItem', { category: item.category })
-            }
-            style={styles.itemContainer}
-          >
-            <Image source={{ uri: item.image.url }} style={styles.listImg} />
-            <Text style={styles.itemText} numberOfLines={2}>
-              {item.category.charAt(0).toUpperCase() + item.category.slice(1)}
-            </Text>
-          </Pressable>
-        )}
+        renderItem={renderItem}
       />
     </View>
   );
@@ -42,35 +55,49 @@ const RenderCategories = () => {
 
 export default RenderCategories;
 
-export const styles = StyleSheet.create({
+/* ---------------- STYLES ---------------- */
+
+const styles = StyleSheet.create({
   wrapper: {
-    height: 130,
+    height: 150,
     marginTop: 10,
   },
+
   flatListContent: {
-    alignItems: 'center',
-    paddingLeft: '5%',
+    paddingHorizontal: 20,
   },
-  itemContainer: {
+
+  card: {
+    width: 90,
+    marginRight: 16,
     alignItems: 'center',
-    marginRight: 10,
+  },
+
+  cardInner: {
+    alignItems: 'center',
+  },
+
+  imageWrap: {
     width: 70,
-    height: 110,
-    justifyContent: 'flex-start',
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: '#eef2ff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+    elevation: 4,
   },
-  listImg: {
+
+  image: {
     width: 60,
     height: 60,
     borderRadius: 30,
-    borderColor: 'rgb(254, 197, 139)',
-    borderWidth: 2,
-    elevation: 6,
-    marginBottom: 6,
   },
-  itemText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#3E3E3E',
+
+  text: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#111827',
     textAlign: 'center',
   },
 });

@@ -4,56 +4,60 @@ import Toast from 'react-native-toast-message';
 import GenericForm from '../utils/GenericForm';
 import api from '../utils/api';
 import { UserContext } from '../utils/userContext';
+import { View, Text, StyleSheet } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
+import Icon from 'react-native-vector-icons/Feather';
 
 const AddItem = ({ navigation }) => {
   const { user, foodItems } = useContext(UserContext);
   const categories = foodItems.map(item => item.category);
+
   const fields = [
     {
       name: 'name',
-      label: 'Enter Name of item',
-      placeholder: 'Name',
+      label: 'Item Name',
+      placeholder: 'Enter item name',
       required: true,
     },
     {
       name: 'price',
-      label: 'Enter Price (₹)',
+      label: 'Price (₹)',
       placeholder: 'Enter item price',
       required: true,
       keyboardType: 'decimal-pad',
     },
     {
       name: 'discountPercent',
-      label: 'Enter Discount Percent (0-100)',
+      label: 'Discount Percentage (0 - 100)',
       placeholder: 'Enter discount percentage',
       required: true,
       keyboardType: 'decimal-pad',
     },
     {
       name: 'image',
-      type: 'image', // ✅ this enables the picker logic
+      label: 'Item Image',
+      type: 'image',
       required: true,
       shape: 'square',
     },
     {
       name: 'category',
-      label: ' Category',
+      label: 'Category',
       type: 'dropdown',
       required: true,
-      options: categories, // replace with dynamic or static options
+      options: categories,
     },
     {
       name: 'checkVeg',
-      label: 'Veg or non-Veg',
+      label: 'Veg or Non-Veg',
       type: 'dropdown',
       required: true,
-      options: ['Veg', 'Non-Veg'], // replace with dynamic or static options
+      options: ['Veg', 'Non-Veg'],
     },
   ];
 
   const onSubmit = async formData => {
-    const { name, price, category, checkVeg, discountPercent, image } =
-      formData;
+    const { name, price, category, checkVeg, discountPercent, image } = formData;
 
     if (!name?.trim()) {
       Toast.show({
@@ -64,32 +68,6 @@ const AddItem = ({ navigation }) => {
       return;
     }
 
-    if (!price || price.toString().trim() === '') {
-      Toast.show({
-        type: 'error',
-        text1: 'Validation Error',
-        text2: 'Please enter item price',
-      });
-      return;
-    }
-    if (!discountPercent || discountPercent.toString().trim() === '') {
-      Toast.show({
-        type: 'error',
-        text1: 'Validation Error',
-        text2: 'Please enter discount percentage',
-      });
-      return;
-    }
-    if (!image.url || (typeof image.url === 'string' && !image.url.trim())) {
-      Toast.show({
-        type: 'error',
-        text1: 'Validation Error',
-        text2: 'Please select an image',
-      });
-      return;
-    }
-    // Validate numeric fields
-    const isVeg = checkVeg === 'Veg' ? true : false;
     const priceNum = parseFloat(price.toString().replace(/[^0-9.]/g, ''));
     const discountNum = parseFloat(
       discountPercent.toString().replace(/[^0-9.]/g, ''),
@@ -113,6 +91,17 @@ const AddItem = ({ navigation }) => {
       return;
     }
 
+    if (!image?.url) {
+      Toast.show({
+        type: 'error',
+        text1: 'Validation Error',
+        text2: 'Please upload an item image',
+      });
+      return;
+    }
+
+    const isVeg = checkVeg === 'Veg';
+
     try {
       const token = await AsyncStorage.getItem('token');
 
@@ -122,7 +111,7 @@ const AddItem = ({ navigation }) => {
           text1: 'Authentication Error',
           text2: 'Please login again',
         });
-        navigation.replace('Login'); // Adjust route name as needed
+        navigation.replace('Login');
         return;
       }
 
@@ -141,10 +130,10 @@ const AddItem = ({ navigation }) => {
         category,
         isVeg,
         discountPercent: discountNum,
-        image: image, // ✅ this should be a Cloudinary image URL string
+        image,
       };
 
-      const res = await api.post(`/items/${user.restaurant}`,itemData, {
+      const res = await api.post(`/items/${user.restaurant}`, itemData, {
         headers: {
           authorization: token,
         },
@@ -153,62 +142,93 @@ const AddItem = ({ navigation }) => {
       if (res.data.success) {
         Toast.show({
           type: 'success',
-          text1: 'Success',
-          text2: 'Item added successfully',
+          text1: 'Item Added Successfully',
         });
 
-        // Navigate back after a short delay
         setTimeout(() => {
           navigation.replace('HomeWithDrawer');
         }, 500);
       } else {
-        const msg1 = res.data.message || 'Item addition failed';
         Toast.show({
           type: 'error',
-          text1: 'Error',
-          text2: msg1,
+          text1: 'Failed',
+          text2: res.data.message || 'Item addition failed',
         });
       }
     } catch (error) {
-      let errorMessage = 'Something went wrong';
-
-      if (error?.response?.status === 401) {
-        errorMessage = 'Authentication failed. Please login again.';
-        // Optionally navigate to login
-        // navigation.replace('Login');
-      } else if (error?.response?.status === 403) {
-        errorMessage = 'You are not authorized to perform this action.';
-      } else if (error?.response?.status === 400) {
-        errorMessage =
-          error?.response?.data?.message || 'Invalid data provided.';
-      } else if (error?.response?.status === 500) {
-        errorMessage = 'Server error. Please try again later.';
-      } else if (error?.code === 'NETWORK_ERROR') {
-        errorMessage = 'Network error. Please check your connection.';
-      } else {
-        errorMessage =
-          error?.response?.data?.message ||
-          error?.message ||
-          'Something went wrong';
-      }
-
       Toast.show({
         type: 'error',
         text1: 'Error',
-        text2: errorMessage,
+        text2:
+          error?.response?.data?.message ||
+          error?.message ||
+          'Something went wrong',
       });
     }
   };
 
   return (
-    <GenericForm
-      fields={fields}
-      onSubmit={onSubmit}
-      submitLabel="Add Item"
-      headingTxt="Add Item to Your Restaurant"
-      footerLink={null}
-    />
+    <View style={styles.container}>
+      {/* Header */}
+      <Animated.View entering={FadeInDown} style={styles.header}>
+        <View style={styles.iconWrap}>
+          <Icon name="package" size={32} color="#4f46e5" />
+        </View>
+        <Text style={styles.title}>Add New Item</Text>
+        <Text style={styles.subtitle}>
+          Add delicious food items to your restaurant menu
+        </Text>
+      </Animated.View>
+
+      {/* Form */}
+      <GenericForm
+        fields={fields}
+        onSubmit={onSubmit}
+        submitLabel="Add Item"
+        headingTxt=""
+        footerLink={null}
+      />
+    </View>
   );
 };
 
 export default AddItem;
+
+/* ---------------- STYLES ---------------- */
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f9fafb',
+  },
+
+  header: {
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+
+  iconWrap: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: '#eef2ff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+    elevation: 3,
+  },
+
+  title: {
+    fontSize: 26,
+    fontWeight: '800',
+    color: '#111827',
+    marginBottom: 6,
+  },
+
+  subtitle: {
+    fontSize: 14,
+    color: '#6b7280',
+    textAlign: 'center',
+    paddingHorizontal: 40,
+  },
+});

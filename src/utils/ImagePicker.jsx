@@ -9,10 +9,11 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from 'react-native';
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+
 import ImagePicker from 'react-native-image-crop-picker';
 import axios from 'axios';
 import Toast from 'react-native-toast-message';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const CLOUDINARY_CONFIG = {
   uploadPreset: 'unsigned_preset',
@@ -33,6 +34,8 @@ const ImagePickerComponent = ({
     initialImageUrl ? { uri: initialImageUrl } : null,
   );
   const [isUploading, setIsUploading] = useState(false);
+
+  /* ---------------- UPLOAD ---------------- */
 
   const uploadImage = async imageData => {
     try {
@@ -64,10 +67,9 @@ const ImagePickerComponent = ({
         url: cloudinaryUrl,
         public_id: cloudinaryPublicId,
       };
-      // ✅ Send both URL and public_id back to the form
-      onImageUploaded?.(image);
 
-      return { cloudinaryUrl, cloudinaryPublicId };
+      onImageUploaded?.(image);
+      return image;
     } catch (error) {
       Toast.show({
         type: 'error',
@@ -79,6 +81,8 @@ const ImagePickerComponent = ({
       setIsUploading(false);
     }
   };
+
+  /* ---------------- PICK IMAGE ---------------- */
 
   const pickImage = async source => {
     try {
@@ -112,11 +116,10 @@ const ImagePickerComponent = ({
         path: image.path,
       };
 
-      // Upload to Cloudinary
       await uploadImage(imageData);
     } catch (error) {
       if (error.code !== 'E_PICKER_CANCELLED') {
-        Alert.alert('Error', `Failed to open ${source}. Please try again.`);
+        Alert.alert('Error', 'Failed to open image picker. Please try again.');
       }
     }
   };
@@ -134,112 +137,127 @@ const ImagePickerComponent = ({
     onImageRemoved?.();
   };
 
+  /* ---------------- UI ---------------- */
+
   return (
-    <SafeAreaProvider>
-      <SafeAreaView style={{ flex: 1 }}>
-        <View style={styles.container}>
-          <Text style={styles.label}>
-            {label}
-            {required && <Text style={{ color: 'red' }}> *</Text>}
-          </Text>
+    <View style={styles.container}>
+      <Text style={styles.label}>
+        {label}
+        {required && <Text style={{ color: '#ef4444' }}> *</Text>}
+      </Text>
 
-          <Pressable
-            style={[styles.imageBtn, buttonStyle]}
-            onPress={showImagePicker}
-            disabled={isUploading}
-          >
-            {isUploading ? (
-              <View style={styles.uploadingContainer}>
-                <ActivityIndicator size="small" color="#666" />
-                <Text style={styles.uploadingText}>Uploading...</Text>
-              </View>
-            ) : (
-              <Text style={styles.buttonText}>
-                {selectedImage ? 'Change Image' : 'Select Image'}
-              </Text>
-            )}
+      <Pressable
+        style={[styles.imageBtn, buttonStyle]}
+        onPress={showImagePicker}
+        disabled={isUploading}
+      >
+        {isUploading ? (
+          <View style={styles.uploadingContainer}>
+            <ActivityIndicator size="small" color="#4f46e5" />
+            <Text style={styles.uploadingText}>Uploading...</Text>
+          </View>
+        ) : (
+          <View style={styles.btnRow}>
+            <Ionicons name="cloud-upload-outline" size={20} color="#4f46e5" />
+            <Text style={styles.buttonText}>
+              {selectedImage ? 'Change Image' : 'Select Image'}
+            </Text>
+          </View>
+        )}
+      </Pressable>
+
+      {selectedImage && (
+        <View style={styles.imageContainer}>
+          <Image
+            source={{ uri: selectedImage.uri }}
+            style={[styles.preview, previewStyle]}
+          />
+
+          <Pressable style={styles.removeBtn} onPress={handleRemoveImage}>
+            <Ionicons name="close" size={16} color="#fff" />
           </Pressable>
-
-          {selectedImage && (
-            <View style={styles.imageContainer}>
-              <Image
-                source={{ uri: selectedImage.uri }}
-                style={[styles.preview, previewStyle]}
-              />
-              <Pressable style={styles.removeBtn} onPress={handleRemoveImage}>
-                <Text style={styles.removeText}>×</Text>
-              </Pressable>
-            </View>
-          )}
         </View>
-      </SafeAreaView>
-    </SafeAreaProvider>
+      )}
+    </View>
   );
 };
+
+export default ImagePickerComponent;
+
+/* ---------------- STYLES ---------------- */
 
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    alignItems: 'center',
     marginBottom: 20,
   },
+
   label: {
-    alignSelf: 'flex-start',
-    marginLeft: '5%',
-    fontSize: 16,
-    color: '#3E3E3E',
-    marginBottom: 10,
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: 8,
   },
+
   imageBtn: {
-    width: '90%',
-    height: 50,
-    backgroundColor: '#E6E6E6',
+    width: '100%',
+    height: 52,
+    backgroundColor: '#eef2ff',
     borderWidth: 1,
-    borderColor: '#A3B18A',
-    borderRadius: 10,
+    borderColor: '#c7d2fe',
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  buttonText: {
-    color: '#444',
-    fontSize: 16,
-  },
-  uploadingContainer: {
+
+  btnRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
   },
-  uploadingText: {
-    color: '#666',
+
+  buttonText: {
+    color: '#4f46e5',
     fontSize: 16,
+    fontWeight: '700',
   },
+
+  uploadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+
+  uploadingText: {
+    color: '#4f46e5',
+    fontSize: 15,
+    fontWeight: '600',
+  },
+
   imageContainer: {
     position: 'relative',
-    marginTop: 15,
+    marginTop: 14,
+    alignSelf: 'flex-start',
   },
+
   preview: {
     width: 120,
     height: 120,
-    borderRadius: 12,
+    borderRadius: 16,
     borderWidth: 2,
-    borderColor: '#A3B18A',
+    borderColor: '#c7d2fe',
+    backgroundColor: '#f9fafb',
   },
+
   removeBtn: {
     position: 'absolute',
     top: -8,
     right: -8,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: '#FF4444',
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: '#ef4444',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  removeText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
 });
-
-export default ImagePickerComponent;

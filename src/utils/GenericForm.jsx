@@ -11,33 +11,30 @@ import {
   StyleSheet,
   Platform,
 } from 'react-native';
+
+import Animated, { FadeInDown, Layout } from 'react-native-reanimated';
 import Icon from 'react-native-vector-icons/Feather';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import { Picker } from '@react-native-picker/picker';
-import ImagePickerComponent from '../utils/ImagePicker';
 
-const GenericForm = ({
-  fields,
-  onSubmit,
-  submitLabel,
-  headingTxt,
-  footerLink,
-}) => {
+import ImagePickerComponent from './ImagePicker';
+
+const AnimatedView = Animated.createAnimatedComponent(View);
+
+const GenericForm = ({ fields, onSubmit, submitLabel, headingTxt }) => {
+  const insets = useSafeAreaInsets();
+
   const [formData, setFormData] = useState(() =>
-    fields.reduce(
-      (acc, field) => ({
-        ...acc,
-        [field.name]: field.type === 'image' ? null : '',
-      }),
-      {},
-    ),
+    fields.reduce((acc, field) => {
+      acc[field.name] = field.type === 'image' ? null : '';
+      return acc;
+    }, {}),
   );
 
   const [errors, setErrors] = useState({});
-  const [showPassword, setShowPassword] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const insets = useSafeAreaInsets();
+  const [focusedField, setFocusedField] = useState(null);
 
   const handleChange = (name, value) => {
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -49,36 +46,8 @@ const GenericForm = ({
 
     fields.forEach(field => {
       const value = formData[field.name];
-
-      if (
-        field.required &&
-        (!value ||
-          (field.type === 'image' ? !value?.url : !value.toString().trim()))
-      ) {
-        newErrors[field.name] =
-          field.type === 'image'
-            ? 'Please select an image'
-            : 'This field is required';
-      }
-
-      if (
-        field.name === 'email' &&
-        value?.trim() &&
-        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
-      ) {
-        newErrors.email = 'Invalid email format';
-      }
-
-      if (
-        field.name === 'phone' &&
-        value?.trim() &&
-        !/^[6-9]\d{9}$/.test(value)
-      ) {
-        newErrors.phone = 'Invalid phone number';
-      }
-
-      if (field.name === 'confirmPassword' && value !== formData.password) {
-        newErrors.confirmPassword = 'Passwords do not match';
+      if (field.required && (!value || value === '')) {
+        newErrors[field.name] = 'This field is required';
       }
     });
 
@@ -87,12 +56,18 @@ const GenericForm = ({
   };
 
   const handleSubmit = async () => {
-    if (!validate()) return;
-    setIsSubmitting(true);
+    if (!validate()) {
+      Toast.show({
+        type: 'error',
+        text1: 'Missing Fields',
+        text2: 'Please fill all required fields',
+      });
+      return;
+    }
 
+    setIsSubmitting(true);
     try {
-      const dataToSubmit = { ...formData };
-      await onSubmit(dataToSubmit);
+      await onSubmit(formData);
     } catch (err) {
       Toast.show({
         type: 'error',
@@ -104,321 +79,208 @@ const GenericForm = ({
     }
   };
 
-  const handleImageUploaded = (fieldName, imageData) => {
-    // imageData = { url, public_id }
-    handleChange(fieldName, imageData);
-  };
-
-  const handleImageRemoved = fieldName => {
-    handleChange(fieldName, null);
-  };
-
   const renderField = (field, index) => {
-    if (field.type === 'image') {
-      return (
-        <View key={field.name} style={styles.fieldBlock}>
-          <Text style={styles.label}>
-            {field.label || 'Upload Image'}
-            {field.required && <Text style={styles.required}> *</Text>}
-          </Text>
-          <View style={styles.imageContainer}>
-            <ImagePickerComponent
-              onImageUploaded={imageData =>
-                handleImageUploaded(field.name, imageData)
-              }
-              onImageRemoved={() => handleImageRemoved(field.name)}
-              label={field.label || 'Upload Image'}
-              required={field.required}
-              shape={field.shape || 'square'}
-              initialImageUrl={formData[field.name]?.url}
-              previewStyle={field.previewStyle}
-              buttonStyle={field.buttonStyle}
-            />
-          </View>
-          {errors[field.name] && (
-            <Text style={styles.error}>{errors[field.name]}</Text>
-          )}
-        </View>
-      );
-    }
-
     if (field.type === 'dropdown') {
       return (
-        <View key={field.name} style={styles.fieldBlock}>
-          <Text style={styles.label}>
-            {field.label}
-            {field.required && <Text style={styles.required}> *</Text>}
-          </Text>
-          <View style={styles.inputContainer}>
-            <View style={styles.inputWrapper}>
-              <Icon
-                name="chevron-down"
-                size={20}
-                color="#4b0082"
-                style={styles.inputIcon}
-              />
-              <Picker
-                selectedValue={formData[field.name]}
-                onValueChange={value => handleChange(field.name, value)}
-                style={styles.picker}
-              >
-                <Picker.Item label={`Select ${field.label}`} value="" />
-                {field.options?.map(option => (
-                  <Picker.Item key={option} label={option} value={option} />
-                ))}
-              </Picker>
-            </View>
+        <AnimatedView
+          key={field.name}
+          entering={FadeInDown.delay(index * 80)}
+          layout={Layout.springify()}
+          style={styles.fieldCard}
+        >
+          <Text style={styles.label}>{field.label}</Text>
+          <View style={styles.inputBox}>
+            <Picker
+              selectedValue={formData[field.name]}
+              onValueChange={value => handleChange(field.name, value)}
+            >
+              <Picker.Item label={`Select ${field.label}`} value="" />
+              {field.options?.map(option => (
+                <Picker.Item key={option} label={option} value={option} />
+              ))}
+            </Picker>
           </View>
+
           {errors[field.name] && (
             <Text style={styles.error}>{errors[field.name]}</Text>
           )}
-        </View>
+        </AnimatedView>
       );
     }
 
-    const getFieldIcon = type => {
-      switch (type) {
-        case 'email':
-          return 'mail';
-        case 'password':
-          return 'lock';
-        case 'phone':
-          return 'phone';
-        default:
-          return 'edit-3';
-      }
-    };
+    if (field.type === 'image') {
+      return (
+        <AnimatedView
+          key={field.name}
+          entering={FadeInDown.delay(index * 80)}
+          layout={Layout.springify()}
+          style={styles.fieldCard}
+        >
+          <Text style={styles.label}>{field.label}</Text>
+
+          <ImagePickerComponent
+            onImageUploaded={image => handleChange(field.name, image)}
+            onImageRemoved={() => handleChange(field.name, null)}
+            initialImageUrl={formData[field.name]?.url}
+          />
+
+          {errors[field.name] && (
+            <Text style={styles.error}>{errors[field.name]}</Text>
+          )}
+        </AnimatedView>
+      );
+    }
 
     return (
-      <View key={index} style={styles.fieldBlock}>
-        <Text style={styles.label}>
-          {field.label}
-          {field.required && <Text style={styles.required}> *</Text>}
-        </Text>
-        <View style={styles.inputContainer}>
-          <View style={styles.inputWrapper}>
-            <Icon
-              name={getFieldIcon(field.type)}
-              size={20}
-              color="#4b0082"
-              style={styles.inputIcon}
-            />
-            <TextInput
-              placeholder={field.placeholder}
-              style={styles.input}
-              placeholderTextColor="#9ca3af"
-              keyboardType={field.keyboardType || 'default'}
-              secureTextEntry={
-                field.type === 'password' && !showPassword[field.name]
-              }
-              value={formData[field.name]}
-              onChangeText={text => handleChange(field.name, text)}
-            />
-            {field.type === 'password' && (
-              <Pressable
-                onPress={() =>
-                  setShowPassword(prev => ({
-                    ...prev,
-                    [field.name]: !prev[field.name],
-                  }))
-                }
-                style={styles.passwordToggle}
-              >
-                <Icon
-                  name={showPassword[field.name] ? 'eye' : 'eye-off'}
-                  size={20}
-                  color="#4b0082"
-                />
-              </Pressable>
-            )}
-          </View>
+      <AnimatedView
+        key={field.name}
+        entering={FadeInDown.delay(index * 80)}
+        layout={Layout.springify()}
+        style={styles.fieldCard}
+      >
+        <Text style={styles.label}>{field.label}</Text>
+
+        <View
+          style={[
+            styles.inputRow,
+            focusedField === field.name && styles.inputFocused,
+          ]}
+        >
+          <Icon name="edit-3" size={18} color="#6b7280" />
+
+          <TextInput
+            placeholder={field.placeholder || field.label}
+            value={formData[field.name]}
+            onChangeText={value => handleChange(field.name, value)}
+            secureTextEntry={field.type === 'password'}
+            style={styles.input}
+            onFocus={() => setFocusedField(field.name)}
+            onBlur={() => setFocusedField(null)}
+            placeholderTextColor="#9ca3af"
+          />
         </View>
+
         {errors[field.name] && (
           <Text style={styles.error}>{errors[field.name]}</Text>
         )}
-      </View>
+      </AnimatedView>
     );
   };
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.container}
-      >
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      style={{ flex: 1, backgroundColor: '#f9fafb' }}
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <ScrollView
           contentContainerStyle={[
-            styles.scrollContent,
-            { paddingTop: insets.top + 20 },
+            styles.container,
+            { paddingBottom: insets.bottom + 120 },
           ]}
-          keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {/* Header Section */}
-          <View style={styles.headerSection}>
-            <Text style={styles.heading}>{headingTxt}</Text>
-          </View>
+          <Text style={styles.heading}>{headingTxt}</Text>
 
-          {/* Form Fields */}
-          <View style={styles.formSection}>{fields.map(renderField)}</View>
+          {fields.map(renderField)}
 
-          {/* Footer Link */}
-          {footerLink && (
-            <View style={styles.footerLinkSection}>{footerLink}</View>
-          )}
-
-          {/* Submit Button */}
-          <View style={styles.buttonSection}>
-            <Pressable
-              style={[
-                styles.submitButton,
-                isSubmitting && styles.buttonDisabled,
-              ]}
-              onPress={handleSubmit}
-              disabled={isSubmitting}
-            >
-              <Icon
-                name={isSubmitting ? 'loader' : 'check-circle'}
-                size={20}
-                color="#fff"
-                style={styles.buttonIcon}
-              />
-              <Text style={styles.buttonText}>
-                {isSubmitting ? 'Submitting...' : submitLabel}
-              </Text>
-            </Pressable>
-          </View>
+          <Pressable
+            onPress={handleSubmit}
+            disabled={isSubmitting}
+            style={({ pressed }) => [
+              styles.submitBtn,
+              pressed && { opacity: 0.85 },
+            ]}
+          >
+            <Text style={styles.submitText}>
+              {isSubmitting ? 'Submitting...' : submitLabel}
+            </Text>
+          </Pressable>
         </ScrollView>
-      </KeyboardAvoidingView>
-    </TouchableWithoutFeedback>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 };
 
+export default GenericForm;
+
+/* ---------------- STYLES ---------------- */
+
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: '#fff',
+    padding: 20,
   },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: 20,
-    paddingBottom: 30,
-  },
-  headerSection: {
-    backgroundColor: 'rgb(245, 230, 215)',
-    paddingVertical: 30,
-    paddingHorizontal: 20,
-    borderRadius: 20,
-    marginBottom: 20,
-    alignItems: 'center',
-  },
+
   heading: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#4b0082',
-    textAlign: 'center',
-  },
-  formSection: {
-    flex: 1,
-  },
-  fieldBlock: {
+    fontSize: 26,
+    fontWeight: '800',
     marginBottom: 20,
+    color: '#111827',
   },
+
+  fieldCard: {
+    backgroundColor: '#fff',
+    padding: 16,
+    borderRadius: 18,
+    marginBottom: 14,
+    elevation: 2,
+  },
+
   label: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
-    color: '#4b0082',
-    marginBottom: 8,
-    marginLeft: 4,
+    marginBottom: 6,
+    color: '#374151',
   },
-  required: {
-    color: '#ef4444',
-  },
-  inputContainer: {
-    marginBottom: 4,
-  },
-  inputWrapper: {
+
+  inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 12,
+    gap: 10,
     borderWidth: 1,
     borderColor: '#e5e7eb',
-    paddingHorizontal: 16,
-    minHeight: 50,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    backgroundColor: '#f9fafb',
   },
-  inputIcon: {
-    marginRight: 12,
+
+  inputFocused: {
+    borderColor: '#4f46e5',
+    backgroundColor: '#eef2ff',
   },
+
   input: {
     flex: 1,
     fontSize: 16,
-    color: '#333',
-    paddingVertical: 12,
+    color: '#111827',
   },
-  passwordToggle: {
-    padding: 4,
-  },
-  picker: {
-    flex: 1,
-    color: '#333',
-  },
-  imageContainer: {
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 12,
+
+  inputBox: {
     borderWidth: 1,
     borderColor: '#e5e7eb',
-    padding: 16,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-  },
-  error: {
-    color: '#ef4444',
-    fontSize: 13,
-    marginTop: 4,
-    marginLeft: 4,
-  },
-  footerLinkSection: {
-    alignItems: 'center',
-    marginVertical: 20,
-  },
-  buttonSection: {
-    marginTop: 20,
-  },
-  submitButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#4b0082',
-    paddingVertical: 16,
-    paddingHorizontal: 24,
     borderRadius: 12,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
+    overflow: 'hidden',
   },
-  buttonDisabled: {
-    backgroundColor: '#9ca3af',
-  },
-  buttonIcon: {
-    marginRight: 8,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
+
+  error: {
+    marginTop: 6,
+    color: '#dc2626',
+    fontSize: 12,
     fontWeight: '600',
   },
-});
 
-export default GenericForm;
+  submitBtn: {
+    marginTop: 30,
+    backgroundColor: '#4f46e5',
+    paddingVertical: 16,
+    borderRadius: 16,
+    alignItems: 'center',
+  },
+
+  submitText: {
+    color: '#fff',
+    fontSize: 17,
+    fontWeight: '700',
+  },
+});

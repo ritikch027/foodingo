@@ -1,154 +1,154 @@
-import React, { createContext, useState, useEffect, useMemo } from 'react';
+import React, {
+  createContext,
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+} from 'react';
 import api from './api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
 
+export const UserContext = createContext();
+
 export const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(null); // NEW
-  
-  //fetching category
-  
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  /* ---------------- CATEGORIES ---------------- */
+
   const [foodItems, setFoodItems] = useState([]);
-  const fetchCategories = async () => {
+
+  const fetchCategories = useCallback(async () => {
     try {
       const res = await api.get('/categories');
       setFoodItems(res.data);
+      await AsyncStorage.setItem('categories', JSON.stringify(res.data));
     } catch (error) {
-      console.error('Error fetching categories:', error);
+      // Load cache if API fails
+      const cached = await AsyncStorage.getItem('categories');
+      if (cached) setFoodItems(JSON.parse(cached));
     }
-  };
-  
-  //fetching cart items
+  }, []);
+
+  /* ---------------- CART ---------------- */
+
   const [cartItems, setCartItems] = useState([]);
-  const getCartData = async () => {
+
+  const getCartData = useCallback(async () => {
     try {
       const token = await AsyncStorage.getItem('token');
-      const res = await api.get('/cart', {
-        headers: {
-          authorization: token,
-        },
-      });
+      if (!token) return;
+
+      const res = await api.get('/cart');
       const items = res.data.cart?.items || [];
       setCartItems(items);
     } catch (error) {
-      const msg1 = error?.data.message;
       Toast.show({
         type: 'error',
-        text1: 'Some Error Occured',
-        text2: msg1,
+        text1: 'Cart Error',
+        text2: 'Failed to load cart',
       });
     }
-  };
+  }, []);
+
+  // Map cart items for UI
   const mappedItems = useMemo(() => {
     return cartItems.map(cartItem => ({
       ...cartItem.productId,
       quantity: cartItem.quantity,
     }));
   }, [cartItems]);
-  
-  //increase cart quantity
-  
+
+  /* ---------------- OPTIMISTIC CART ---------------- */
+
   const increaseQuantity = async ({ item }) => {
+    const id = item._id || item.productId;
+
+    // Optimistic UI
+    setCartItems(prev =>
+      prev.map(i =>
+        i.productId._id === id ? { ...i, quantity: i.quantity + 1 } : i,
+      ),
+    );
+
     try {
-      const token = await AsyncStorage.getItem('token');
-      const res = await api.post(
-        '/cart/increment',
-        { productId: item._id || item.productId }, // support both keys
-        {
-          headers: {
-            authorization: token,
-          },
-        },
-      );
-      if (res.data.success) {
-        setTimeout(async () => {
-          await getCartData();
-        }, 10);
-      } else {
-        Toast.show({
-          type: 'error',
-          text1: 'Failed to increase quantity',
-        });
-      }
+      await api.post('/cart/increment', { productId: id });
     } catch (err) {
       Toast.show({
         type: 'error',
-        text1:
-        err.response?.data?.message || err.message || 'Something went wrong',
+        text1: 'Update Failed',
+        text2: 'Could not update cart',
       });
+      getCartData(); // rollback
     }
   };
-  //decrease cart quantity
+
   const decreaseQuantity = async ({ item }) => {
+    const id = item._id || item.productId;
+
+    // Optimistic UI
+    setCartItems(prev =>
+      prev
+        .map(i =>
+          i.productId._id === id ? { ...i, quantity: i.quantity - 1 } : i,
+        )
+        .filter(i => i.quantity > 0),
+    );
+
     try {
-      const token = await AsyncStorage.getItem('token');
-      
-      const res = await api.post(
-        '/cart/decrement',
-        { productId: item._id || item.productId },
-        {
-          headers: {
-            authorization: token,
-          },
-        },
-      );
-      
-      if (res.data.success) {
-        setTimeout(async () => {
-          await getCartData();
-        }, 10);
-        // Refresh cart
-      } else {
-        Toast.show({
-          type: 'error',
-          text1: 'Failed to decrease quantity',
-        });
-      }
+      await api.post('/cart/decrement', { productId: id });
     } catch (err) {
       Toast.show({
         type: 'error',
-        text1:
-        err.response?.data?.message || err.message || 'Something went wrong',
+        text1: 'Update Failed',
+        text2: 'Could not update cart',
       });
+      getCartData(); // rollback
     }
   };
-  
+
+  /* ---------------- SESSION ---------------- */
+
+  const checkSession = async () => {
+    const token = await AsyncStorage.getItem('token');
+
+    if (token) {
+      setIsLoggedIn(true);
+      getCartData();
+    } else {
+      setIsLoggedIn(false);
+      setCartItems([]);
+    }
+  };
+
+  /* ---------------- INIT ---------------- */
+
   useEffect(() => {
-    const checkIfLoggedIn = async () => {
-      const token = await AsyncStorage.getItem('token');
-      if (!token) {
-        // Don't call getData or show any toast
-        return;
-      }
-      // Safe to fetch user
-      await getCartData();
-    };
-    
-    checkIfLoggedIn();
+    checkSession();
     fetchCategories();
   }, []);
-  
+
   return (
     <UserContext.Provider
-    value={{
-      user,
-      setUser,
-      fetchCategories,
-      isLoggedIn,
-      setIsLoggedIn,
-      foodItems,
-      mappedItems,
-      getCartData,
-      cartItems,
-      setCartItems,
-      increaseQuantity,
-      decreaseQuantity,
-    }}
+      value={{
+        user,
+        setUser,
+        isLoggedIn,
+        setIsLoggedIn,
+
+        foodItems,
+        fetchCategories,
+
+        cartItems,
+        mappedItems,
+        getCartData,
+
+        increaseQuantity,
+        decreaseQuantity,
+      }}
     >
       {children}
     </UserContext.Provider>
   );
 };
-
-export const UserContext = createContext();

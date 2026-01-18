@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 import Items from '../utils/ItemCard';
 import { useRoute } from '@react-navigation/native';
-import { React, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import api from '../utils/api';
 import Toast from 'react-native-toast-message';
@@ -15,23 +15,22 @@ const RestaurantItems = () => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchRestaurantItems = async () => {
-      try {
-        const res = await api.get(`/items/restaurant/${restaurant._id}`);
-        setItems(res.data.items);
-      } catch (error) {
-        console.error('Error fetching items:', error);
-        Toast.show({
-          type: 'error',
-          text1: 'Failed to load items',
-          text2: error?.response?.data?.message || 'Something went wrong',
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchRestaurantItems = async () => {
+    try {
+      const res = await api.get(`/items/restaurant/${restaurant._id}`);
+      setItems(res.data.items);
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: 'Failed to load items',
+        text2: error?.response?.data?.message || 'Something went wrong',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchRestaurantItems();
   }, []);
 
@@ -41,18 +40,23 @@ const RestaurantItems = () => {
 
   if (!restaurant) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <Text>Restaurant not found</Text>
+      <View style={styles.center}>
+        <Text style={styles.errorText}>Restaurant not found</Text>
       </View>
     );
   }
 
   return (
-    <View>
-      <Text style={{ ...styles.heading, paddingTop: insets.top }}>
-        More from {restaurant.name}
-      </Text>
+    <View style={styles.container}>
+      {/* Header */}
+      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
+        <Text style={styles.subtitle}>More from</Text>
+        <Text style={styles.title}>{restaurant.name}</Text>
+      </View>
+
+      {/* Items Grid */}
       <Items items={items} />
+
       <Toast />
     </View>
   );
@@ -60,13 +64,40 @@ const RestaurantItems = () => {
 
 export default RestaurantItems;
 
+/* ---------------- STYLES ---------------- */
+
 const styles = StyleSheet.create({
-  heading: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    textAlign: 'flex-start',
-    marginLeft: '8%',
-    fontFamily: 'fantasy',
-    color: 'rgb(84, 79, 59)',
+  container: {
+    flex: 1,
+    backgroundColor: '#f9fafb',
+  },
+
+  header: {
+    paddingHorizontal: 20,
+    paddingBottom: 10,
+  },
+
+  subtitle: {
+    fontSize: 14,
+    color: '#6b7280',
+    marginBottom: 4,
+  },
+
+  title: {
+    fontSize: 26,
+    fontWeight: '800',
+    color: '#111827',
+  },
+
+  center: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  errorText: {
+    fontSize: 16,
+    color: '#ef4444',
+    fontWeight: '600',
   },
 });

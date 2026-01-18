@@ -1,56 +1,52 @@
-import { StyleSheet, Text, View, Animated, Dimensions } from 'react-native';
-import { React, useContext, useEffect, useRef, useState } from 'react';
+import { StyleSheet, Text, View, Pressable, Dimensions } from 'react-native';
+import React, { useContext, useEffect } from 'react';
 import { UserContext } from './userContext';
 import Entypo from 'react-native-vector-icons/Entypo';
+
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+} from 'react-native-reanimated';
+
 const screenWidth = Dimensions.get('window').width;
+
 const Counter = ({ item }) => {
   const { decreaseQuantity, increaseQuantity } = useContext(UserContext);
-  const [localQty, setLocalQty] = useState(item.quantity);
-  const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  const scale = useSharedValue(1);
 
   // Animate when quantity changes
   useEffect(() => {
-    if (item.quantity !== localQty) {
-      setLocalQty(item.quantity);
-      Animated.sequence([
-        Animated.timing(scaleAnim, {
-          toValue: 1.2,
-          duration: 100,
-          useNativeDriver: true,
-        }),
-        Animated.timing(scaleAnim, {
-          toValue: 1,
-          duration: 100,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    }
+    scale.value = withSpring(1.25, { damping: 10 }, () => {
+      scale.value = withSpring(1);
+    });
   }, [item.quantity]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
 
   return (
     <View style={styles.wrapper}>
       <View style={styles.counter}>
-        <Entypo
+        <Pressable
           onPress={() => decreaseQuantity({ item })}
-          style={styles.icon}
-          name="minus"
-          size={18}
-          color="rgb(84, 79, 59)"
-        />
-
-        <Animated.Text
-          style={[styles.quantity, { transform: [{ scale: scaleAnim }] }]}
+          style={({ pressed }) => [styles.iconBtn, pressed && styles.pressed]}
         >
+          <Entypo name="minus" size={18} color="#4f46e5" />
+        </Pressable>
+
+        <Animated.Text style={[styles.quantity, animatedStyle]}>
           {item.quantity}
         </Animated.Text>
 
-        <Entypo
+        <Pressable
           onPress={() => increaseQuantity({ item })}
-          style={styles.icon}
-          name="plus"
-          size={18}
-          color="rgb(84, 79, 59)"
-        />
+          style={({ pressed }) => [styles.iconBtn, pressed && styles.pressed]}
+        >
+          <Entypo name="plus" size={18} color="#4f46e5" />
+        </Pressable>
       </View>
     </View>
   );
@@ -60,28 +56,41 @@ export default Counter;
 
 const styles = StyleSheet.create({
   wrapper: {
-    width: screenWidth * 0.2,
-    margin: 10,
+    width: screenWidth * 0.22,
     alignItems: 'center',
   },
+
   counter: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#f2f2f2', // light neutral color
-    borderRadius: 6,
+    backgroundColor: '#f9fafb',
+    borderRadius: 14,
     paddingVertical: 6,
+    paddingHorizontal: 6,
     width: '100%',
     borderWidth: 1,
-    borderColor: 'black',
+    borderColor: '#e5e7eb',
   },
+
   quantity: {
-    color: 'black',
-    fontWeight: 'bold',
-    minWidth: 25,
+    color: '#111827',
+    fontWeight: '800',
+    minWidth: 26,
     textAlign: 'center',
+    fontSize: 16,
   },
-  icon: {
-    paddingHorizontal: 5,
+
+  iconBtn: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: '#eef2ff',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  pressed: {
+    opacity: 0.6,
   },
 });

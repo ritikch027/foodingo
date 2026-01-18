@@ -5,26 +5,29 @@ import {
   FlatList,
   Image,
   Dimensions,
-  TouchableOpacity,
+  Pressable,
   useWindowDimensions,
 } from 'react-native';
 
-// Inside your component
-
 import Counter from './counter';
-import { useState, useContext } from 'react';
+import { useContext, useCallback } from 'react';
 import { UserContext } from './userContext';
 import Toast from 'react-native-toast-message';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../utils/api';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import Animated, { FadeInDown, Layout } from 'react-native-reanimated';
+
 const screenWidth = Dimensions.get('window').width;
+
 const Items = ({ items }) => {
   const { width, height } = useWindowDimensions();
   const isLandscape = width > height;
   const numColumns = isLandscape ? 4 : 2;
   const insets = useSafeAreaInsets();
   const { getCartData, mappedItems } = useContext(UserContext);
+
   const addToCart = async ({ item }) => {
     try {
       const token = await AsyncStorage.getItem('token');
@@ -35,9 +38,7 @@ const Items = ({ items }) => {
       };
 
       const res = await api.post('/cart/add', product, {
-        headers: {
-          authorization: token,
-        },
+        headers: { authorization: token },
       });
 
       if (res.data.success) {
@@ -56,133 +57,161 @@ const Items = ({ items }) => {
     }
   };
 
-  return (
-    <View>
-      <FlatList
-        data={items}
-        numColumns={numColumns}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{
-          ...styles.contentContainer,
-          paddingBottom: insets.bottom + 160,
-        }}
-        renderItem={({ item }) => (
-          <View style={styles.ItemCard}>
-            <Image source={{ uri: item.image.url }} style={styles.imgCard} />
+  const renderItem = useCallback(
+    ({ item, index }) => {
+      const cartItem = mappedItems.find(
+        cartItem => cartItem._id === item._id,
+      );
 
-            <Text style={styles.cardText} numberOfLines={1}>
+      return (
+        <Animated.View
+          entering={FadeInDown.delay(index * 80)}
+          layout={Layout.springify()}
+          style={styles.card}
+        >
+          <Image source={{ uri: item.image.url }} style={styles.image} />
+
+          <View style={styles.cardBody}>
+            <Text style={styles.name} numberOfLines={1}>
               {item.name}
             </Text>
 
-            <Text
-              style={{
-                ...styles.cardText,
-                fontSize: 12,
-                color: 'green',
-                fontWeight: 'bold',
-              }}
-            >
-              <Text
-                style={{
-                  ...styles.cardText,
-                  fontWeight: 'bold',
-                  fontSize: 9,
-                  color: 'gray',
-                  textDecorationLine: 'line-through',
-                }}
-              >
-                ₹{item.price}
-              </Text>{' '}
-              ₹{item.offerPrice} ({item.discountPercent}% OFF)
-            </Text>
-            {(() => {
-              const cartItem = mappedItems.find(
-                cartItem => cartItem._id === item._id,
-              );
-              return cartItem ? (
-                <Counter item={cartItem} />
-              ) : (
-                <TouchableOpacity
-                  onPress={() => addToCart({ item })}
-                  style={styles.button}
-                >
-                  <Text style={{ color: 'white', fontWeight: 'bold' }}>
-                    Add
-                  </Text>
-                </TouchableOpacity>
-              );
-            })()}
+            <View style={styles.priceRow}>
+              <Text style={styles.oldPrice}>₹{item.price}</Text>
+              <Text style={styles.price}>₹{item.offerPrice}</Text>
+              <Text style={styles.discount}>
+                {item.discountPercent}% OFF
+              </Text>
+            </View>
 
-            <Text style={styles.isVeg}>
+            {cartItem ? (
+              <Counter item={cartItem} />
+            ) : (
+              <Pressable
+                onPress={() => addToCart({ item })}
+                style={({ pressed }) => [
+                  styles.addBtn,
+                  pressed && { opacity: 0.8 },
+                ]}
+              >
+                <Text style={styles.addText}>Add</Text>
+              </Pressable>
+            )}
+          </View>
+
+          <View style={styles.vegBadge}>
+            <Text style={styles.vegText}>
               {item.isVeg ? '🟢 Veg' : '🔴 Non-Veg'}
             </Text>
           </View>
-        )}
-        keyExtractor={item => item._id}
-      />
-    </View>
+        </Animated.View>
+      );
+    },
+    [mappedItems],
+  );
+
+  return (
+    <FlatList
+      data={items}
+      numColumns={numColumns}
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={{
+        ...styles.contentContainer,
+        paddingBottom: insets.bottom + 160,
+      }}
+      renderItem={renderItem}
+      keyExtractor={item => item._id}
+    />
   );
 };
 
 export default Items;
 
+/* ---------------- STYLES ---------------- */
+
 const styles = StyleSheet.create({
-  heading: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    textAlign: 'flex-start',
-    marginLeft: '8%',
-    fontFamily: 'fantasy',
-    color: 'rgb(84, 79, 59)',
-  },
   contentContainer: {
-    paddingHorizontal: '3%',
+    paddingHorizontal: 16,
     paddingTop: 20,
   },
-  ItemCard: {
-    width: screenWidth * 0.42,
-    backgroundColor: 'white',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderColor: 'rgb(84, 79, 59)',
-    borderWidth: 1,
-    borderRadius: 12,
-    marginVertical: '3%',
-    marginHorizontal: '3%',
-    elevation: 4,
+
+  card: {
+    width: screenWidth * 0.44,
+    backgroundColor: '#fff',
+    borderRadius: 18,
+    marginBottom: 18,
+    marginHorizontal: 8,
+    overflow: 'hidden',
+    elevation: 3,
   },
-  imgCard: {
-    width: screenWidth * 0.41,
+
+  image: {
+    width: '100%',
     height: 150,
-    borderRadius: 10,
-    borderBottomLeftRadius: 0,
-    borderBottomRightRadius: 0,
   },
-  cardText: {
+
+  cardBody: {
+    padding: 12,
+  },
+
+  name: {
+    fontSize: 16,
     fontWeight: '700',
-    fontSize: 15,
-    fontFamily: 'sans-serif',
-    alignSelf: 'flex-start',
-    marginLeft: '4%',
-    lineHeight: '15%',
+    color: '#111827',
   },
-  button: {
-    backgroundColor: 'red',
-    borderRadius: 6,
-    color: 'white',
-    padding: 7,
-    margin: 10,
-    width: '50%',
+
+  priceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 6,
+  },
+
+  oldPrice: {
+    fontSize: 12,
+    color: '#9ca3af',
+    textDecorationLine: 'line-through',
+  },
+
+  price: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#16a34a',
+  },
+
+  discount: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#dc2626',
+  },
+
+  addBtn: {
+    marginTop: 10,
+    backgroundColor: '#4f46e5',
+    paddingVertical: 8,
+    borderRadius: 12,
     alignItems: 'center',
   },
-  isVeg: {
-    fontSize: 10,
-    top: 0,
-    margin: 5,
-    alignSelf: 'flex-start',
-    backgroundColor: 'white',
+
+  addText: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 14,
+  },
+
+  vegBadge: {
     position: 'absolute',
-    borderRadius: 10,
-    padding: 5,
+    top: 8,
+    left: 8,
+    backgroundColor: '#fff',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    elevation: 2,
+  },
+
+  vegText: {
+    fontSize: 11,
+    fontWeight: '700',
   },
 });

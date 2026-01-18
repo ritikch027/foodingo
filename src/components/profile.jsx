@@ -1,108 +1,84 @@
+import React, { useContext } from 'react';
 import {
   StyleSheet,
   Text,
   View,
   Image,
-  Dimensions,
-  TouchableOpacity,
   SafeAreaView,
   ScrollView,
+  Pressable,
   Alert,
 } from 'react-native';
-import { React, useContext } from 'react';
+
 import { UserContext } from '../utils/userContext';
 import Icon from 'react-native-vector-icons/Feather';
 import api from '../utils/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
 
-const screenWidth = Dimensions.get('window').width;
-
 const Profile = ({ navigation }) => {
-  const { user, setIsLoggedIn, setCartItems } = useContext(UserContext);
+  const { user, setIsLoggedIn } = useContext(UserContext);
 
   if (!user) {
     return (
       <View style={styles.loadingContainer}>
         <View style={styles.loadingCard}>
-          <Icon name="user" size={40} color="#9ca3af" />
+          <Icon name="user" size={42} color="#9ca3af" />
           <Text style={styles.loadingText}>Loading profile...</Text>
         </View>
       </View>
     );
   }
 
+  /* ---------------- ACTIONS ---------------- */
+
   const handleLogout = async () => {
-    Alert.alert('Logout Confirmation', 'Are you sure you want to logout?', [
-      {
-        text: 'Cancel',
-        style: 'cancel',
-      },
+    Alert.alert('Logout', 'Are you sure you want to logout?', [
+      { text: 'Cancel', style: 'cancel' },
       {
         text: 'Logout',
         style: 'destructive',
         onPress: async () => {
           await AsyncStorage.removeItem('token');
-          await AsyncStorage.setItem('isLoggedIn', 'false');
-          setCartItems([]);
           setIsLoggedIn(false);
         },
       },
     ]);
   };
 
-  const handleAddItems = () => {
-    navigation.navigate('AddItem');
-  };
   const handleDeleteRestaurant = async () => {
     const token = await AsyncStorage.getItem('token');
+
     Alert.alert(
-      'Deletion Confirmation',
-      'Are you sure you want to remove your restaurant?',
+      'Delete Restaurant',
+      'Are you sure you want to delete your restaurant?',
       [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
+        { text: 'Cancel', style: 'cancel' },
         {
           text: 'Delete',
           style: 'destructive',
           onPress: async () => {
             try {
-              const res = await api.delete(
-                `/restaurant/delete/${user.restaurant}`,
-                {
-                  headers: {
-                    Authorization: token, // Your JWT token stored in context or state
-                  },
-                },
-              );
-              console.log(res.data.message);
+              await api.delete(`/restaurant/delete/${user.restaurant}`, {
+                headers: { Authorization: token },
+              });
+
               Toast.show({
                 type: 'success',
-                text1: 'Deletion Successful',
-                text2: 'Restaurant Deleted',
+                text1: 'Restaurant deleted successfully',
               });
-              setTimeout(() => {
-                navigation.replace('HomeWithDrawer');
-              }, 500);
+
+              navigation.replace('HomeWithDrawer');
             } catch (err) {
               Toast.show({
                 type: 'error',
-                text1: err,
-                text2: 'Failed to Delete restaurant',
+                text1: 'Delete failed',
+                text2: 'Could not delete restaurant',
               });
             }
           },
         },
       ],
-    );
-  };
-
-  const handleEditProfile = () => {
-    Alert.alert(
-      'Coming Soon',
-      'Profile editing feature will be available soon!',
     );
   };
 
@@ -126,11 +102,13 @@ const Profile = ({ navigation }) => {
         Alert.alert('Coming Soon', 'Settings feature coming soon!'),
     },
     user.role === 'customer' && {
-      title: 'Register your restaurant With us',
+      title: 'Register your restaurant',
       icon: 'plus',
       onPress: () => navigation.navigate('AddRestaurant'),
     },
-  ];
+  ].filter(Boolean);
+
+  /* ---------------- UI ---------------- */
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -138,31 +116,27 @@ const Profile = ({ navigation }) => {
         contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header Section */}
+        {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.editButton}
-            onPress={handleEditProfile}
-          >
-            <Icon name="edit-3" size={20} color="#4b0082" />
-          </TouchableOpacity>
+          <Text style={styles.headerTitle}>My Profile</Text>
         </View>
 
-        {/* Profile Avatar */}
+        {/* Avatar */}
         <View style={styles.avatarContainer}>
           <Image
             style={styles.avatar}
             source={{
-              uri: user.image_url,
+              uri:
+                user.image_url ||
+                'https://cdn-icons-png.flaticon.com/512/149/149071.png',
             }}
           />
-          <TouchableOpacity style={styles.cameraButton}>
-            <Icon name="camera" size={16} color="#fff" />
-          </TouchableOpacity>
         </View>
 
-        {/* User Info */}
+        {/* Name */}
         <Text style={styles.name}>{user.name}</Text>
+
+        {/* Role */}
         <View style={styles.roleBadge}>
           <Icon
             name={user.role === 'owner' ? 'briefcase' : 'user'}
@@ -172,78 +146,81 @@ const Profile = ({ navigation }) => {
           <Text style={styles.roleText}>
             {user.role === 'admin'
               ? 'Admin'
-              : user.role == 'owner'
+              : user.role === 'owner'
               ? 'Owner'
               : 'Customer'}
           </Text>
         </View>
 
-        {/* Contact Information */}
-        <View style={styles.infoSection}>
-          <View style={styles.inputWrapper}>
-            <Text style={styles.label}>Email Address</Text>
-            <View style={styles.inputBox}>
-              <Icon name="mail" size={18} color="#4b0082" />
-              <Text style={styles.inputText}>{user.email}</Text>
-            </View>
+        {/* Info Card */}
+        <View style={styles.infoCard}>
+          <View style={styles.infoRow}>
+            <Icon name="mail" size={18} color="#4f46e5" />
+            <Text style={styles.infoText}>{user.email}</Text>
           </View>
 
-          <View style={styles.inputWrapper}>
-            <Text style={styles.label}>Phone Number</Text>
-            <View style={styles.inputBox}>
-              <Icon name="phone" size={18} color="#4b0082" />
-              <Text style={styles.inputText}>+91 {user.phone}</Text>
-            </View>
+          <View style={styles.divider} />
+
+          <View style={styles.infoRow}>
+            <Icon name="phone" size={18} color="#4f46e5" />
+            <Text style={styles.infoText}>+91 {user.phone}</Text>
           </View>
         </View>
 
-        {/* Menu Options */}
+        {/* Menu */}
         <View style={styles.menuSection}>
           {menuOptions.map((option, index) => (
-            <TouchableOpacity
+            <Pressable
               key={index}
-              style={styles.menuItem}
               onPress={option.onPress}
+              style={({ pressed }) => [
+                styles.menuItem,
+                pressed && { opacity: 0.8 },
+              ]}
             >
-              <View style={styles.menuItemLeft}>
-                <Icon name={option.icon} size={20} color="#4b0082" />
-                <Text style={styles.menuItemText}>{option.title}</Text>
+              <View style={styles.menuLeft}>
+                <Icon name={option.icon} size={20} color="#4f46e5" />
+                <Text style={styles.menuText}>{option.title}</Text>
               </View>
               <Icon name="chevron-right" size={20} color="#9ca3af" />
-            </TouchableOpacity>
+            </Pressable>
           ))}
         </View>
 
-        {/* Owner-specific Actions */}
+        {/* Owner Section */}
         {user.role === 'owner' && (
           <View style={styles.ownerSection}>
             <Text style={styles.sectionTitle}>Owner Actions</Text>
-            <TouchableOpacity
-              onPress={handleAddItems}
-              style={styles.primaryActionBtn}
+
+            <Pressable
+              onPress={() => navigation.navigate('AddItem')}
+              style={styles.primaryBtn}
             >
               <Icon name="plus" size={20} color="#fff" />
-              <Text style={styles.primaryActionText}>
-                Add Items to Restaurant
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
+              <Text style={styles.primaryText}>Add Items</Text>
+            </Pressable>
+
+            <Pressable
               onPress={handleDeleteRestaurant}
-              style={styles.primaryActionBtn}
+              style={[styles.primaryBtn, { backgroundColor: '#ef4444' }]}
             >
-              <Icon name="x" size={20} color="#fff" />
-              <Text style={styles.primaryActionText}>
-                delete Your restaurant
-              </Text>
-            </TouchableOpacity>
+              <Icon name="trash-2" size={20} color="#fff" />
+              <Text style={styles.primaryText}>Delete Restaurant</Text>
+            </Pressable>
           </View>
         )}
 
-        {/* Logout Button */}
-        <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}>
+        {/* Logout */}
+        <Pressable
+          onPress={handleLogout}
+          style={({ pressed }) => [
+            styles.logoutBtn,
+            pressed && { opacity: 0.8 },
+          ]}
+        >
           <Icon name="log-out" size={20} color="#ef4444" />
           <Text style={styles.logoutText}>Logout</Text>
-        </TouchableOpacity>
+        </Pressable>
       </ScrollView>
     </SafeAreaView>
   );
@@ -251,205 +228,192 @@ const Profile = ({ navigation }) => {
 
 export default Profile;
 
+/* ---------------- STYLES ---------------- */
+
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#f9fafb',
   },
+
   container: {
     alignItems: 'center',
-    backgroundColor: '#fff',
     paddingBottom: 40,
   },
+
   header: {
     width: '100%',
-    height: 160,
-    backgroundColor: 'rgb(245, 230, 215)',
+    paddingVertical: 26,
+    alignItems: 'center',
+    backgroundColor: '#eef2ff',
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
-    position: 'relative',
   },
-  editButton: {
-    position: 'absolute',
-    top: 40,
-    right: 20,
-    backgroundColor: '#fff',
-    padding: 10,
-    borderRadius: 20,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+
+  headerTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#111827',
   },
+
   avatarContainer: {
-    position: 'relative',
-    marginTop: -50,
+    marginTop: -40,
+    backgroundColor: '#fff',
+    borderRadius: 60,
+    padding: 4,
+    elevation: 4,
   },
+
   avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    borderWidth: 4,
-    borderColor: '#fff',
+    width: 110,
+    height: 110,
+    borderRadius: 55,
     backgroundColor: '#e5e7eb',
   },
-  cameraButton: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    backgroundColor: '#4b0082',
-    padding: 8,
-    borderRadius: 15,
-    borderWidth: 2,
-    borderColor: '#fff',
-  },
+
   name: {
-    fontSize: 26,
-    fontWeight: 'bold',
-    color: '#4b0082',
-    marginTop: 15,
-    textAlign: 'center',
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#111827',
+    marginTop: 12,
   },
+
   roleBadge: {
-    backgroundColor: '#4b0082',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    marginTop: 10,
+    marginTop: 6,
     flexDirection: 'row',
     alignItems: 'center',
-    elevation: 2,
+    backgroundColor: '#4f46e5',
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 20,
   },
+
   roleText: {
     color: '#fff',
-    fontSize: 13,
-    fontWeight: '600',
-    marginLeft: 5,
+    fontSize: 12,
+    fontWeight: '700',
+    marginLeft: 6,
   },
-  infoSection: {
-    width: '100%',
-    paddingHorizontal: 20,
-    marginTop: 30,
+
+  infoCard: {
+    width: '90%',
+    marginTop: 26,
+    backgroundColor: '#fff',
+    borderRadius: 18,
+    padding: 20,
+    elevation: 2,
   },
-  inputWrapper: {
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 14,
-    color: '#6b7280',
-    marginBottom: 8,
-    fontWeight: '500',
-  },
-  inputBox: {
-    backgroundColor: '#f9fafb',
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    borderRadius: 12,
+
+  infoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
+    gap: 12,
   },
-  inputText: {
-    fontSize: 15,
+
+  infoText: {
+    fontSize: 16,
     color: '#111827',
-    marginLeft: 12,
-    flex: 1,
+    fontWeight: '600',
   },
+
+  divider: {
+    height: 1,
+    backgroundColor: '#e5e7eb',
+    marginVertical: 16,
+  },
+
   menuSection: {
-    width: '100%',
-    paddingHorizontal: 20,
-    marginTop: 20,
+    width: '90%',
+    marginTop: 30,
   },
+
   menuItem: {
-    backgroundColor: '#f9fafb',
+    backgroundColor: '#fff',
     paddingVertical: 16,
-    paddingHorizontal: 20,
-    borderRadius: 12,
+    paddingHorizontal: 18,
+    borderRadius: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
+    marginBottom: 12,
+    elevation: 2,
   },
-  menuItemLeft: {
+
+  menuLeft: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  menuItemText: {
+
+  menuText: {
     fontSize: 16,
     color: '#111827',
     marginLeft: 12,
-    fontWeight: '500',
+    fontWeight: '600',
   },
+
   ownerSection: {
-    width: '100%',
-    paddingHorizontal: 20,
+    width: '90%',
     marginTop: 30,
-    gap: 10,
   },
+
   sectionTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#4b0082',
-    marginBottom: 15,
+    fontWeight: '800',
+    color: '#111827',
+    marginBottom: 16,
   },
-  primaryActionBtn: {
-    backgroundColor: '#4b0082',
+
+  primaryBtn: {
+    backgroundColor: '#4f46e5',
     paddingVertical: 16,
-    paddingHorizontal: 24,
-    borderRadius: 12,
+    borderRadius: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    marginBottom: 12,
+    gap: 8,
   },
-  primaryActionText: {
+
+  primaryText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: '600',
-    marginLeft: 8,
+    fontWeight: '700',
   },
+
   logoutBtn: {
+    marginTop: 30,
     backgroundColor: '#fef2f2',
     paddingVertical: 14,
     paddingHorizontal: 40,
-    borderRadius: 12,
-    marginTop: 30,
+    borderRadius: 18,
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#fecaca',
+    gap: 8,
   },
+
   logoutText: {
     color: '#ef4444',
     fontSize: 16,
-    fontWeight: '600',
-    marginLeft: 8,
+    fontWeight: '700',
   },
+
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff',
-  },
-  loadingCard: {
     backgroundColor: '#f9fafb',
+  },
+
+  loadingCard: {
+    backgroundColor: '#fff',
     padding: 40,
     borderRadius: 20,
     alignItems: 'center',
     elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
   },
+
   loadingText: {
     fontSize: 18,
     color: '#6b7280',
