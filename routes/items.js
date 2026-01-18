@@ -1,108 +1,165 @@
 const express = require("express");
 const router = express.Router();
+const mongoose = require("mongoose");
+const Joi = require("joi");
+const cloudinary = require("cloudinary").v2;
+
 const Item = require("../models/item");
 const Restaurant = require("../models/restaurant");
 const authenticate = require("../middleware/authenticate");
-const cloudinary = require("cloudinary").v2;
 
+// Cloudinary config (once in app bootstrap is better)
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// Get all categories
+// ---------- Validation ----------
+const createItemSchema = Joi.object({
+  name: Joi.string().min(2).max(80).required(),
+  category: Joi.string().min(2).max(50).required(),
+  price: Joi.number().min(1).required(),
+  discountPercent: Joi.number().min(0).max(90).default(0),
+  image: Joi.object({
+    url: Joi.string().uri().required(),
+    public_id: Joi.string().optional(),
+  }).required(),
+  isVeg: Joi.boolean().default(false),
+});
+
+// ---------- Read: by category (FAST) ----------
 router.get("/items/category/:categoryName", async (req, res) => {
   try {
-    const category = req.params.categoryName;
-    const items = await Item.find({ category });
-    res.status(200).json(items);
+    const category = req.params.categoryName.toLowerCase().trim();
+
+    const items = await Item.find({ category })
+      .select("name offerPrice image.url isVeg restaurant")
+      .sort({ name: 1 })
+      .lean();
+
+    res.json({ success: true, items });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    console.error("Items by category:", err);
+    res.status(500).json({ success: false, message: "Failed to fetch items" });
   }
 });
 
+// ---------- Read: by restaurant (FAST) ----------
 router.get("/items/restaurant/:restaurantId", async (req, res) => {
   try {
     const { restaurantId } = req.params;
 
-    const items = await Item.find({ restaurant: restaurantId });
-
-    res.status(200).json({ success: true, items });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
-  }
-});
-router.post("/items/:restaurantId", authenticate, async (req, res) => {
-  try {
-    const { name, category, price, discountPercent, image, isVeg } = req.body;
-    const { restaurantId } = req.params;
-
-    const restaurant = await Restaurant.findById(restaurantId);
-
-    if (!restaurant)
-      return res.status(404).json({ message: "Create your Restaurant First" });
-
-    if (restaurant.owner.toString() !== req.userId) {
+    if (!mongoose.Types.ObjectId.isValid(restaurantId)) {
       return res
-        .status(403)
-        .json({ message: "You are not the owner of this restaurant" });
+        .status(400)
+        .json({ success: false, message: "Invalid restaurantId" });
     }
 
-    const item = new Item({
-      name,
-      category,
-      price,
-      discountPercent,
-      image,
-      isVeg,
+    const items = await Item.find({ restaurant: restaurantId })
+      .select("name offerPrice image.url isVeg")
+      .sort({ name: 1 })
+      .lean();
+
+    res.json({ success: true, items });
+  } catch (err) {
+    console.error("Items by restaurant:", err);
+    res.status(500).json({ success: false, message: "Failed to fetch items" });
+  }
+});
+
+// ---------- Create: owner only ----------
+router.post("/items/:restaurantId", authenticate, async (req, res) => {
+  try {
+    const { error, value } = createItemSchema.validate(req.body);
+    if (error) {
+      return res.status(400).json({ success: false, message: error.message });
+    }
+
+    const { restaurantId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(restaurantId)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid restaurantId" });
+    }
+
+    const restaurant = await Restaurant.findById(restaurantId).select("owner");
+    if (!restaurant) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Create your restaurant first" });
+    }
+
+    if (restaurant.owner.toString() !== req.user.id) {
+      return res
+        .status(403)
+        .json({ success: false, message: "Not the restaurant owner" });
+    }
+
+    const item = await Item.create({
+      ...value,
+      category: value.category.toLowerCase().trim(),
       restaurant: restaurantId,
     });
 
-    await item.save();
-
     res.status(201).json({ success: true, item });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error("Create item:", err);
+    res.status(500).json({ success: false, message: "Failed to create item" });
   }
 });
 
-router.post("/items/remove/:restaurantId", authenticate, async (req, res) => {
-  try {
-    const { productId } = req.body;
-    const { restaurantId } = req.params;
+// ---------- Delete: owner only (safe Cloudinary delete) ----------
+router.delete(
+  "/items/:restaurantId/:productId",
+  authenticate,
+  async (req, res) => {
+    try {
+      const { restaurantId, productId } = req.params;
 
-    const restaurant = await Restaurant.findById(restaurantId);
-    if (!restaurant)
-      return res.status(404).json({ message: "Restaurant not found" });
+      if (
+        !mongoose.Types.ObjectId.isValid(restaurantId) ||
+        !mongoose.Types.ObjectId.isValid(productId)
+      ) {
+        return res.status(400).json({ success: false, message: "Invalid ids" });
+      }
 
-    if (restaurant.owner.toString() !== req.userId) {
-      return res
-        .status(403)
-        .json({ message: "You are not the owner of this restaurant" });
+      const restaurant =
+        await Restaurant.findById(restaurantId).select("owner");
+      if (!restaurant) {
+        return res
+          .status(404)
+          .json({ success: false, message: "Restaurant not found" });
+      }
+
+      if (restaurant.owner.toString() !== req.user.id) {
+        return res
+          .status(403)
+          .json({ success: false, message: "Not the restaurant owner" });
+      }
+
+      const item = await Item.findById(productId).select("image.public_id");
+      if (!item) {
+        return res
+          .status(404)
+          .json({ success: false, message: "Item not found" });
+      }
+
+      // Delete image by stored public_id (reliable)
+      if (item.image?.public_id) {
+        await cloudinary.uploader.destroy(item.image.public_id);
+      }
+
+      await item.deleteOne();
+
+      res.json({ success: true, message: "Item deleted successfully" });
+    } catch (err) {
+      console.error("Delete item:", err);
+      res
+        .status(500)
+        .json({ success: false, message: "Failed to delete item" });
     }
-
-    const item = await Item.findById(productId);
-    if (!item) {
-      return res.status(404).json({ message: "Item not found" });
-    }
-
-    // Extract public_id from image_url (assuming it's in standard Cloudinary format)
-    const imageUrl = item.image_url;
-    const publicId = imageUrl.split("/").pop().split(".")[0]; // removes .jpg/.png etc.
-
-    // Delete image from Cloudinary
-    await cloudinary.uploader.destroy(publicId);
-
-    // Delete item from DB
-    await item.deleteOne();
-
-    res
-      .status(200)
-      .json({ success: true, message: "Item and image deleted successfully" });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
+  },
+);
 
 module.exports = router;

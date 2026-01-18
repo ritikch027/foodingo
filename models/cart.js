@@ -1,18 +1,45 @@
 const mongoose = require("mongoose");
 const { Schema, model } = mongoose;
 
-const CartSchema = new Schema({
-  user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-  items: [
-    {
-      productId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Item", // or "Product" – use your model name here
-        required: true,
-      },
-      quantity: { type: Number, default: 1 },
+const CartItemSchema = new Schema(
+  {
+    productId: {
+      type: Schema.Types.ObjectId,
+      ref: "Item",
+      required: true,
+      index: true,
     },
-  ],
-});
+    quantity: {
+      type: Number,
+      default: 1,
+      min: 1,
+      max: 50,
+    },
+  },
+  { _id: false },
+);
+
+const CartSchema = new Schema(
+  {
+    user: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      unique: true, // one cart per user
+      index: true,
+    },
+    items: {
+      type: [CartItemSchema],
+      default: [],
+    },
+  },
+  {
+    timestamps: true,
+  },
+);
+
+// Indexes for performance
+CartSchema.index({ user: 1 }, { unique: true });
+CartSchema.index({ "items.productId": 1 });
 
 module.exports = model("Cart", CartSchema);

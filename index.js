@@ -1,43 +1,89 @@
 const express = require("express");
 const connectDB = require("./db");
+
 const categories = require("./routes/category");
 const offers = require("./routes/offers");
 const items = require("./routes/items");
 const users = require("./routes/users");
 const restaurants = require("./routes/restaurants");
 const cart = require("./routes/cartItems");
+const admin = require("./routes/adminRoutes");
+
 const cors = require("cors");
+const helmet = require("helmet");
+const compression = require("compression");
+const rateLimit = require("express-rate-limit");
+
 require("dotenv").config();
+
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 const HOST = "0.0.0.0";
 
-app.use(cors());
-// Connect to MongoDB
-connectDB();
+// Trust proxy (important for cloud deployment)
+app.set("trust proxy", 1);
 
-// Middleware to parse JSON
-app.use(express.json());
+// ---------- Security ----------
+app.use(helmet());
 
-// Routes
+// Lock CORS (change to your frontend domain)
+app.use(
+  cors({
+    origin: ["http://localhost:3000"],
+    credentials: true,
+  }),
+);
 
+// ---------- Performance ----------
+app.use(compression());
+app.use(express.json({ limit: "1mb" }));
+
+// ---------- Rate limiting (DDoS & bruteforce protection) ----------
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 1000, // per IP
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.use("/api", apiLimiter);
+
+// ---------- Database ----------
+connectDB({
+  maxPoolSize: 20,
+  minPoolSize: 5,
+});
+
+// ---------- Routes ----------
 app.use("/api", offers);
 app.use("/api", users);
 app.use("/api", categories);
 app.use("/api", items);
 app.use("/api", cart);
-// inside items.js
-
+app.use("/api", admin);
 app.use("/api", restaurants);
-// Homepage route
-app.get("/", (req, res) => {
-  console.log("I am inside homepage route handler");
-  res.send("Hello, welcome to the server");
+
+// ---------- Health Check ----------
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "ok", uptime: process.uptime() });
 });
 
-// Start the server
-app.listen(PORT, () => {
-  console.log("🟢 Backend redeployed successfully");
+// ---------- Root ----------
+app.get("/", (req, res) => {
+  res.send("Foodingo backend running 🚀");
+});
 
-  console.log(`Server is running on port ${PORT}`);
+// ---------- Global Error Handler ----------
+app.use((err, req, res, next) => {
+  console.error("Unhandled error:", err);
+  res.status(500).json({
+    success: false,
+    message: "Internal server error",
+  });
+});
+
+// ---------- Start Server ----------
+app.listen(PORT, () => {
+  console.log("🟢 Backend running");
+  console.log(`🚀 Server listening on http://localhost:${PORT}`);
 });
