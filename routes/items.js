@@ -34,8 +34,9 @@ router.get("/items/category/:categoryName", async (req, res) => {
     const category = req.params.categoryName.trim();
 
     const items = await Item.find({ category })
-      .select("name offerPrice image.url isVeg restaurant")
-      .sort({ name: 1 })
+      .select(
+        "name offerPrice image.url price discountPercent isVeg restaurant",
+      )
       .lean();
 
     res.json({ success: true, items });
@@ -57,7 +58,7 @@ router.get("/items/restaurant/:restaurantId", async (req, res) => {
     }
 
     const items = await Item.find({ restaurant: restaurantId })
-      .select("name offerPrice discountPercent price image.url isVeg")
+      .select("name offerPrice image.url isVeg")
       .sort({ name: 1 })
       .lean();
 
