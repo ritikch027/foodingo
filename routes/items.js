@@ -31,7 +31,7 @@ const createItemSchema = Joi.object({
 // ---------- Read: by category (FAST) ----------
 router.get("/items/category/:categoryName", async (req, res) => {
   try {
-    const category = req.params.categoryName.toLowerCase().trim();
+    const category = req.params.categoryName.trim();
 
     const items = await Item.find({ category })
       .select("name offerPrice image.url isVeg restaurant")
