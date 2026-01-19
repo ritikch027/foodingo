@@ -57,7 +57,7 @@ router.get("/items/restaurant/:restaurantId", async (req, res) => {
     }
 
     const items = await Item.find({ restaurant: restaurantId })
-      .select("name offerPrice image.url isVeg")
+      .select("name offerPrice discountPercent price image.url isVeg")
       .sort({ name: 1 })
       .lean();
 
