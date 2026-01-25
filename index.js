@@ -1,6 +1,6 @@
 const express = require("express");
 const connectDB = require("./db");
-
+const orders = require("./routes/orders");
 const categories = require("./routes/category");
 const offers = require("./routes/offers");
 const items = require("./routes/items");
@@ -62,6 +62,7 @@ app.use("/api", items);
 app.use("/api", cart);
 app.use("/api", admin);
 app.use("/api", restaurants);
+app.use("/api", orders);
 
 // ---------- Health Check ----------
 app.get("/health", (req, res) => {
