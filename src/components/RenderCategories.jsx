@@ -69,7 +69,7 @@ export default RenderCategories;
 
 const styles = StyleSheet.create({
   wrapper: {
-    height: 150,
+    height: 100,
     marginTop: 10,
   },
 
@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
   },
 
   card: {
-    width: 90,
+    width: 80,
     marginRight: 16,
     alignItems: 'center',
   },
@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 8,
-    elevation: 4,
+    elevation: 6,
   },
 
   image: {

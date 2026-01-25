@@ -56,6 +56,7 @@ export default Counter;
 
 const styles = StyleSheet.create({
   wrapper: {
+    marginTop:2,
     width: screenWidth * 0.22,
     alignItems: 'center',
   },
@@ -82,9 +83,9 @@ const styles = StyleSheet.create({
   },
 
   iconBtn: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
     backgroundColor: '#eef2ff',
     alignItems: 'center',
     justifyContent: 'center',

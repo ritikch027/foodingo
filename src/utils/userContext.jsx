@@ -25,15 +25,15 @@ export const UserProvider = ({ children }) => {
       setFoodItems(res.data.categories);
 
       // cache
-      await AsyncStorage.setItem('categories', JSON.stringify(res.data));
+      // await AsyncStorage.setItem('categories', JSON.stringify(res.data));
     } catch (error) {
       console.log('Category API error:', error.message);
 
       // fallback to cache
-      const cached = await AsyncStorage.getItem('categories');
-      if (cached) {
-        setFoodItems(JSON.parse(cached));
-      }
+      // const cached = await AsyncStorage.getItem('categories');
+      // if (cached) {
+      //   setFoodItems(JSON.parse(cached));
+      // }
     }
   };
 

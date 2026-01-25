@@ -29,6 +29,15 @@ const Items = ({ items }) => {
   const { getCartData, mappedItems } = useContext(UserContext);
 
   const addToCart = async ({ item }) => {
+    if (mappedItems.length && mappedItems[0].restaurant !== item.restaurant) {
+      Toast.show({
+        type: 'info',
+        text1: 'Different Restaurant',
+        text2: 'Clear cart to add items from another restaurant',
+      });
+      return;
+    }
+
     try {
       const token = await AsyncStorage.getItem('token');
 

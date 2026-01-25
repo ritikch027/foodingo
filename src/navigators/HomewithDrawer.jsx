@@ -15,8 +15,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/Feather';
 import { UserContext } from '../utils/userContext';
-
-import Home from '../Home';
+import Home from '../screens/Home';
 import Profile from '../components/profile';
 import AddRestaurant from '../additionComponents/AddRestaurant';
 import AddItem from '../additionComponents/AddItems';
@@ -56,12 +55,14 @@ const CustomDrawerContent = props => {
 
   const menuItems = [
     { name: 'Home', icon: 'home', screen: 'Home' },
+    { name: 'My Orders', screen: 'MyOrders' },
     { name: 'Profile', icon: 'user', screen: 'Profile' },
 
     ...(user?.role === 'owner'
       ? [
           { name: 'Add Items', icon: 'package', screen: 'AddItem' },
-          { name: 'Add Category', icon: 'tag', screen: 'AddCategory' },
+          { name: 'Delete Restaurant', icon: 'trash-2', screen: 'AddItem' },
+          { name: 'Orders', screen: 'RestaurantOrders' },
         ]
       : []),
 

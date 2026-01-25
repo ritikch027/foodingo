@@ -17,9 +17,10 @@ import Fontisto from 'react-native-vector-icons/Fontisto';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import RenderOffer from './components/RenderOffer';
+// import RenderOffer from './components/RenderOffer';
 import { UserContext } from './utils/userContext';
 import Loader from './utils/Loader';
+import HomeSkeleton from './utils/HomeSkeleton';
 
 import Animated, { FadeInDown, Layout } from 'react-native-reanimated';
 
@@ -38,22 +39,22 @@ const Home = ({ navigation }) => {
 
   /* ---------------- CACHE ---------------- */
 
-  const cacheSet = async (key, data) => {
-    try {
-      await AsyncStorage.setItem(key, JSON.stringify(data));
-    } catch (err) {
-      console.log('Cache write error:', err);
-    }
-  };
+  // const cacheSet = async (key, data) => {
+  //   try {
+  //     await AsyncStorage.setItem(key, JSON.stringify(data));
+  //   } catch (err) {
+  //     console.log('Cache write error:', err);
+  //   }
+  // };
 
-  const cacheGet = async key => {
-    try {
-      const value = await AsyncStorage.getItem(key);
-      return value ? JSON.parse(value) : null;
-    } catch {
-      return null;
-    }
-  };
+  // const cacheGet = async key => {
+  //   try {
+  //     const value = await AsyncStorage.getItem(key);
+  //     return value ? JSON.parse(value) : null;
+  //   } catch {
+  //     return null;
+  //   }
+  // };
 
   /* ---------------- API ---------------- */
 
@@ -62,7 +63,7 @@ const Home = ({ navigation }) => {
       const res = await api.get('/offers');
       // console.log(res.data);
       setOffers(res.data);
-      cacheSet('offers', res.data);
+      // cacheSet('offers', res.data);
     } catch (err) {
       console.log('Offers API error:', err.message);
     }
@@ -72,7 +73,7 @@ const Home = ({ navigation }) => {
     try {
       const res = await api.get('/restaurants');
       setRestaurants(res.data);
-      cacheSet('restaurants', res.data);
+      // cacheSet('restaurants', res.data);
     } catch (err) {
       console.log('Restaurants API error:', err.message);
     }
@@ -96,28 +97,26 @@ const Home = ({ navigation }) => {
 
   useEffect(() => {
     let mounted = true;
-
     const boot = async () => {
       try {
         // Load cached data instantly
-        const cachedOffers = await cacheGet('offers');
-        const cachedRestaurants = await cacheGet('restaurants');
+        // const cachedOffers = await cacheGet('offers');
+        // const cachedRestaurants = await cacheGet('restaurants');
 
-        if (cachedOffers) setOffers(cachedOffers);
-        if (cachedRestaurants) setRestaurants(cachedRestaurants);
+        // if (cachedOffers) setOffers(cachedOffers);
+        // if (cachedRestaurants) setRestaurants(cachedRestaurants);
 
         // Fetch fresh data without crashing UI
-        fetchOffers();
-        fetchRestaurants();
-        fetchUser();
-        fetchCategories();
+        await fetchOffers();
+        await fetchRestaurants();
+        await fetchUser();
+        await fetchCategories();
       } catch (err) {
         console.log('Boot error:', err);
       } finally {
         if (mounted) setLoading(false);
       }
     };
-
     boot();
     return () => (mounted = false);
   }, []);
@@ -162,13 +161,13 @@ const Home = ({ navigation }) => {
 
   const HeaderSticky = () => <RenderCategories />;
 
-  const HeaderBottom = () => (
-    <View>
-      <Text style={styles.sectionTitle}>Best Offers</Text>
-      <RenderOffer items={offers} />
-      <Text style={styles.sectionTitle}>Restaurants Near You</Text>
-    </View>
-  );
+  // const HeaderBottom = () => (
+  //   <View>
+  //     <Text style={styles.sectionTitle}>Best Offers</Text>
+  //     <RenderOffer items={offers} />
+  //     <Text style={styles.sectionTitle}>Restaurants Near You</Text>
+  //   </View>
+  // );
 
   const renderItem = useCallback(
     ({ item, index }) => (
@@ -206,7 +205,7 @@ const Home = ({ navigation }) => {
     [],
   );
 
-  if (loading && restaurants.length === 0) return <Loader />;
+  if (loading && restaurants.length === 0) return <HomeSkeleton />;
 
   return (
     <View style={styles.container}>
@@ -216,7 +215,10 @@ const Home = ({ navigation }) => {
           <View>
             <HeaderTop />
             <HeaderSticky />
-            <HeaderBottom />
+            <Text style={styles.sectionTitle}>
+              Grab from your favourite restaurant...
+            </Text>
+            {/* <HeaderBottom /> */}
           </View>
         )}
         keyExtractor={item => item._id}
@@ -241,11 +243,12 @@ const styles = StyleSheet.create({
   /* ---------- HEADER ---------- */
 
   headerTopRow: {
-    marginHorizontal: 20,
+    marginHorizontal: 24,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingBottom: 14,
+    paddingTop: 8,
+    paddingBottom: 12,
     borderBottomColor: '#e5e7eb',
     borderBottomWidth: 1,
   },

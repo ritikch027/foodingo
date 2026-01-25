@@ -84,12 +84,6 @@ const Profile = ({ navigation }) => {
 
   const menuOptions = [
     {
-      title: 'Order History',
-      icon: 'clock',
-      onPress: () =>
-        Alert.alert('Coming Soon', 'Order history feature coming soon!'),
-    },
-    {
       title: 'Notifications',
       icon: 'bell',
       onPress: () =>
@@ -186,29 +180,6 @@ const Profile = ({ navigation }) => {
             </Pressable>
           ))}
         </View>
-
-        {/* Owner Section */}
-        {user.role === 'owner' && (
-          <View style={styles.ownerSection}>
-            <Text style={styles.sectionTitle}>Owner Actions</Text>
-
-            <Pressable
-              onPress={() => navigation.navigate('AddItem')}
-              style={styles.primaryBtn}
-            >
-              <Icon name="plus" size={20} color="#fff" />
-              <Text style={styles.primaryText}>Add Items</Text>
-            </Pressable>
-
-            <Pressable
-              onPress={handleDeleteRestaurant}
-              style={[styles.primaryBtn, { backgroundColor: '#ef4444' }]}
-            >
-              <Icon name="trash-2" size={20} color="#fff" />
-              <Text style={styles.primaryText}>Delete Restaurant</Text>
-            </Pressable>
-          </View>
-        )}
 
         {/* Logout */}
         <Pressable

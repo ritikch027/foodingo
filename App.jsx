@@ -11,18 +11,18 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-
 import Login from './src/auth components/Login';
 import Register from './src/auth components/Register';
 import CategoryItem from './src/components/CategoryItem';
 import Cart from './src/components/Cart';
 import HomewithDrawer from './src/navigators/HomewithDrawer';
-import RestaurantItems from './src/components/RestaurantItems';
-
 import Toast from 'react-native-toast-message';
 import { UserProvider, UserContext } from './src/utils/userContext';
-
 import Animated, { FadeIn } from 'react-native-reanimated';
+import Checkout from './src/screens/Checkout';
+import MyOrders from './src/screens/MyOrders';
+import OrderSuccess from './src/screens/OrderSuccess';
+import RestaurantOrders from './src/screens/RestaurantOrders';
 
 const Stack = createNativeStackNavigator();
 
@@ -77,7 +77,13 @@ const AppNavigation = () => {
           <>
             <Stack.Screen name="HomeWithDrawer" component={HomewithDrawer} />
             <Stack.Screen name="CategoryItem" component={CategoryItem} />
-            <Stack.Screen name="RestaurantItems" component={RestaurantItems} />
+            <Stack.Screen name="Checkout" component={Checkout} />
+            <Stack.Screen name="MyOrders" component={MyOrders} />
+            <Stack.Screen name="OrderSuccess" component={OrderSuccess} />
+            <Stack.Screen
+              name="RestaurantOrders"
+              component={RestaurantOrders}
+            />
             <Stack.Screen name="Cart" component={Cart} />
           </>
         )}
