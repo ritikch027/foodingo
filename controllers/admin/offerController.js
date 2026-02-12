@@ -1,13 +1,8 @@
-const express = require("express");
-const router = express.Router();
 const Joi = require("joi");
 const mongoose = require("mongoose");
 
-const Offer = require("../models/offer");
-const authenticate = require("../middleware/authenticate");
-const isAdmin = require("../middleware/isAdmin");
+const Offer = require("../../models/offer");
 
-// ---------- Validation ----------
 const offerSchema = Joi.object({
   title: Joi.string().min(3).max(50).required(),
   description: Joi.string().max(500).allow("").optional(),
@@ -29,26 +24,7 @@ const updateOfferSchema = Joi.object({
   isActive: Joi.boolean().optional(),
 }).min(1);
 
-// ---------- Get active offers (FAST) ----------
-router.get("/offers", async (req, res) => {
-  try {
-    const offers = await Offer.find({ isActive: true })
-      .select("title description discountPercent image.url")
-      .sort({ createdAt: -1 })
-      .lean();
-
-    res.json({ success: true, offers });
-  } catch (err) {
-    console.error("Get offers:", err);
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch offers",
-    });
-  }
-});
-
-// ---------- Create offer (ADMIN only) ----------
-router.post("/offers", authenticate, isAdmin, async (req, res) => {
+const createOffer = async (req, res) => {
   try {
     const { error, value } = offerSchema.validate(req.body);
     if (error) {
@@ -71,10 +47,9 @@ router.post("/offers", authenticate, isAdmin, async (req, res) => {
       message: "Failed to create offer",
     });
   }
-});
+};
 
-// ---------- Update offer (ADMIN only) ----------
-router.patch("/offers/:id", authenticate, isAdmin, async (req, res) => {
+const updateOffer = async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -113,10 +88,9 @@ router.patch("/offers/:id", authenticate, isAdmin, async (req, res) => {
       message: "Failed to update offer",
     });
   }
-});
+};
 
-// ---------- Delete offer (ADMIN only) ----------
-router.delete("/offers/:id", authenticate, isAdmin, async (req, res) => {
+const deleteOffer = async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -143,6 +117,10 @@ router.delete("/offers/:id", authenticate, isAdmin, async (req, res) => {
       message: "Failed to delete offer",
     });
   }
-});
+};
 
-module.exports = router;
+module.exports = {
+  createOffer,
+  updateOffer,
+  deleteOffer,
+};

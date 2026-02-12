@@ -1,13 +1,8 @@
-const express = require("express");
-const router = express.Router();
 const Joi = require("joi");
 const mongoose = require("mongoose");
 
-const Category = require("../models/categories");
-const authenticate = require("../middleware/authenticate");
-const isAdmin = require("../middleware/isAdmin");
+const Category = require("../../models/categories");
 
-// Validation schema
 const categorySchema = Joi.object({
   category: Joi.string().min(2).max(30).required(),
   image: Joi.object({
@@ -24,26 +19,7 @@ const updateCategorySchema = Joi.object({
   }).optional(),
 }).min(1);
 
-// Get all categories (FAST)
-router.get("/categories", async (req, res) => {
-  try {
-    const categories = await Category.find()
-      .select("category image.url")
-      .sort({ category: 1 })
-      .lean();
-
-    res.json({ success: true, categories });
-  } catch (err) {
-    console.error("Get categories:", err);
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch categories",
-    });
-  }
-});
-
-// Create category (ADMIN only)
-router.post("/categories", authenticate, isAdmin, async (req, res) => {
+const createCategory = async (req, res) => {
   try {
     const { error, value } = categorySchema.validate(req.body);
     if (error) {
@@ -55,7 +31,6 @@ router.post("/categories", authenticate, isAdmin, async (req, res) => {
 
     let { category, image } = value;
 
-    // Normalize
     category = category.trim().toLowerCase();
 
     const exists = await Category.exists({ category });
@@ -82,10 +57,9 @@ router.post("/categories", authenticate, isAdmin, async (req, res) => {
       message: "Failed to create category",
     });
   }
-});
+};
 
-// Update category (ADMIN only)
-router.patch("/categories/:id", authenticate, isAdmin, async (req, res) => {
+const updateCategory = async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -138,10 +112,9 @@ router.patch("/categories/:id", authenticate, isAdmin, async (req, res) => {
       message: "Failed to update category",
     });
   }
-});
+};
 
-// Delete category (ADMIN only)
-router.delete("/categories/:id", authenticate, isAdmin, async (req, res) => {
+const deleteCategory = async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -168,6 +141,10 @@ router.delete("/categories/:id", authenticate, isAdmin, async (req, res) => {
       message: "Failed to delete category",
     });
   }
-});
+};
 
-module.exports = router;
+module.exports = {
+  createCategory,
+  updateCategory,
+  deleteCategory,
+};

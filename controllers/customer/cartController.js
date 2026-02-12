@@ -1,13 +1,9 @@
-const express = require("express");
-const router = express.Router();
 const mongoose = require("mongoose");
 
-const Cart = require("../models/cart");
-const Item = require("../models/item");
-const authenticate = require("../middleware/authenticate");
+const Cart = require("../../models/cart");
+const Item = require("../../models/item");
 
-// Get cart (FAST with select)
-router.get("/cart", authenticate, async (req, res) => {
+const getCart = async (req, res) => {
   try {
     const cart = await Cart.findOne({ user: req.user.id })
       .populate({
@@ -21,19 +17,18 @@ router.get("/cart", authenticate, async (req, res) => {
       return res.json({ success: true, cart: { items: [] } });
     }
 
-    res.json({ success: true, cart });
+    const validItems = cart.items.filter((entry) => entry.productId);
+    res.json({ success: true, cart: { items: validItems } });
   } catch (err) {
     console.error("Get cart:", err);
     res.status(500).json({ success: false, message: "Failed to load cart" });
   }
-});
+};
 
-// Add item (ULTRA FAST - removed product validation)
-router.post("/cart/add", authenticate, async (req, res) => {
+const addToCart = async (req, res) => {
   try {
     const { productId, quantity = 1 } = req.body;
 
-    // Quick validation only
     if (!mongoose.Types.ObjectId.isValid(productId)) {
       return res
         .status(400)
@@ -46,10 +41,6 @@ router.post("/cart/add", authenticate, async (req, res) => {
         .json({ success: false, message: "Invalid quantity" });
     }
 
-    // REMOVED: await Item.exists() - trust the frontend
-    // If product doesn't exist, populate will return null and frontend handles it
-
-    // Single atomic operation
     const cart = await Cart.findOneAndUpdate(
       { user: req.user.id, "items.productId": { $ne: productId } },
       { $push: { items: { productId, quantity } } },
@@ -63,17 +54,14 @@ router.post("/cart/add", authenticate, async (req, res) => {
       });
     }
 
-    // Return success immediately without populated data
-    // Frontend already has the item data from optimistic update
     res.status(201).json({ success: true });
   } catch (err) {
     console.error("Add cart:", err);
     res.status(500).json({ success: false, message: "Failed to add item" });
   }
-});
+};
 
-// Increment (ULTRA FAST)
-router.post("/cart/increment", authenticate, async (req, res) => {
+const incrementCartItem = async (req, res) => {
   try {
     const { productId } = req.body;
 
@@ -83,13 +71,40 @@ router.post("/cart/increment", authenticate, async (req, res) => {
         .json({ success: false, message: "Invalid productId" });
     }
 
-    // Single atomic update, no response data needed
+    const itemExists = await Item.exists({ _id: productId });
+    if (!itemExists) {
+      await Cart.updateOne(
+        { user: req.user.id },
+        { $pull: { items: { productId } } },
+      );
+      return res
+        .status(404)
+        .json({ success: false, message: "Item no longer exists" });
+    }
+
     const result = await Cart.updateOne(
       { user: req.user.id, "items.productId": productId },
-      { $inc: { "items.$.quantity": 1 } },
-    ).lean();
+      { $inc: { "items.$[matched].quantity": 1 } },
+      {
+        arrayFilters: [
+          {
+            "matched.productId": new mongoose.Types.ObjectId(productId),
+            "matched.quantity": { $lt: 50 },
+          },
+        ],
+      },
+    );
 
     if (result.modifiedCount === 0) {
+      const itemInCart = await Cart.exists({
+        user: req.user.id,
+        "items.productId": productId,
+      });
+      if (itemInCart) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Maximum quantity reached" });
+      }
       return res
         .status(404)
         .json({ success: false, message: "Item not found in cart" });
@@ -100,10 +115,9 @@ router.post("/cart/increment", authenticate, async (req, res) => {
     console.error("Increment cart:", err);
     res.status(500).json({ success: false, message: "Failed to update cart" });
   }
-});
+};
 
-// Decrement (ULTRA FAST with atomic operations)
-router.post("/cart/decrement", authenticate, async (req, res) => {
+const decrementCartItem = async (req, res) => {
   try {
     const { productId } = req.body;
 
@@ -113,7 +127,6 @@ router.post("/cart/decrement", authenticate, async (req, res) => {
         .json({ success: false, message: "Invalid productId" });
     }
 
-    // Try to decrement first (for items with quantity > 1)
     const decrementResult = await Cart.updateOne(
       { user: req.user.id },
       { $inc: { "items.$[matched].quantity": -1 } },
@@ -125,17 +138,16 @@ router.post("/cart/decrement", authenticate, async (req, res) => {
           },
         ],
       },
-    ).lean();
+    );
 
     if (decrementResult.modifiedCount > 0) {
       return res.json({ success: true });
     }
 
-    // If not decremented, remove the item (quantity was 1)
     const removeResult = await Cart.updateOne(
       { user: req.user.id },
-      { $pull: { items: { productId: productId } } },
-    ).lean();
+      { $pull: { items: { productId } } },
+    );
 
     if (removeResult.modifiedCount === 0) {
       return res
@@ -148,12 +160,11 @@ router.post("/cart/decrement", authenticate, async (req, res) => {
     console.error("Decrement cart:", err);
     res.status(500).json({ success: false, message: "Failed to update cart" });
   }
-});
+};
 
-// Bulk add items (for faster multi-item additions)
-router.post("/cart/bulk-add", authenticate, async (req, res) => {
+const bulkAddToCart = async (req, res) => {
   try {
-    const { items } = req.body; // [{ productId, quantity }, ...]
+    const { items } = req.body;
 
     if (!Array.isArray(items) || items.length === 0) {
       return res
@@ -161,7 +172,6 @@ router.post("/cart/bulk-add", authenticate, async (req, res) => {
         .json({ success: false, message: "Invalid items array" });
     }
 
-    // Validate all items
     for (const item of items) {
       if (!mongoose.Types.ObjectId.isValid(item.productId)) {
         return res
@@ -175,14 +185,12 @@ router.post("/cart/bulk-add", authenticate, async (req, res) => {
       }
     }
 
-    // Ensure cart exists
     await Cart.updateOne(
       { user: req.user.id },
       { $setOnInsert: { user: req.user.id, items: [] } },
       { upsert: true },
     );
 
-    // Add or increment each item
     for (const item of items) {
       const incremented = await Cart.updateOne(
         { user: req.user.id, "items.productId": item.productId },
@@ -202,6 +210,12 @@ router.post("/cart/bulk-add", authenticate, async (req, res) => {
     console.error("Bulk add cart:", err);
     res.status(500).json({ success: false, message: "Failed to add items" });
   }
-});
+};
 
-module.exports = router;
+module.exports = {
+  getCart,
+  addToCart,
+  incrementCartItem,
+  decrementCartItem,
+  bulkAddToCart,
+};
