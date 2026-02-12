@@ -82,10 +82,8 @@ const RestaurantSchema = new Schema(
 );
 
 // Indexes
-RestaurantSchema.index({ name: 1 }, { unique: true });
 RestaurantSchema.index({ location: 1 });
 RestaurantSchema.index({ rating: -1 });
-RestaurantSchema.index({ owner: 1 });
 RestaurantSchema.index({ "items.productId": 1 });
 
 module.exports = model("Restaurant", RestaurantSchema);

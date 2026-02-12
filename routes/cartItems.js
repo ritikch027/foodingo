@@ -115,12 +115,16 @@ router.post("/cart/decrement", authenticate, async (req, res) => {
 
     // Try to decrement first (for items with quantity > 1)
     const decrementResult = await Cart.updateOne(
+      { user: req.user.id },
+      { $inc: { "items.$[matched].quantity": -1 } },
       {
-        user: req.user.id,
-        "items.productId": productId,
-        "items.quantity": { $gt: 1 },
+        arrayFilters: [
+          {
+            "matched.productId": new mongoose.Types.ObjectId(productId),
+            "matched.quantity": { $gt: 1 },
+          },
+        ],
       },
-      { $inc: { "items.$.quantity": -1 } },
     ).lean();
 
     if (decrementResult.modifiedCount > 0) {
@@ -171,20 +175,27 @@ router.post("/cart/bulk-add", authenticate, async (req, res) => {
       }
     }
 
-    // Bulk upsert
-    const productIds = items.map((i) => i.productId);
+    // Ensure cart exists
     await Cart.updateOne(
       { user: req.user.id },
-      {
-        $set: { user: req.user.id },
-        $addToSet: {
-          items: {
-            $each: items.filter((item) => !productIds.includes(item.productId)),
-          },
-        },
-      },
+      { $setOnInsert: { user: req.user.id, items: [] } },
       { upsert: true },
     );
+
+    // Add or increment each item
+    for (const item of items) {
+      const incremented = await Cart.updateOne(
+        { user: req.user.id, "items.productId": item.productId },
+        { $inc: { "items.$.quantity": item.quantity } },
+      );
+
+      if (incremented.modifiedCount === 0) {
+        await Cart.updateOne(
+          { user: req.user.id },
+          { $push: { items: item } },
+        );
+      }
+    }
 
     res.status(201).json({ success: true });
   } catch (err) {

@@ -37,7 +37,6 @@ const CartSchema = new Schema(
 );
 
 // Indexes for performance
-CartSchema.index({ user: 1 }, { unique: true });
 CartSchema.index({ "items.productId": 1 });
 
 module.exports = model("Cart", CartSchema);

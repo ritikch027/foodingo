@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const mongoose = require("mongoose");
 
 const Order = require("../models/order");
 const Cart = require("../models/cart");
@@ -11,6 +12,10 @@ router.post("/orders", authenticate, async (req, res) => {
   try {
     const { address } = req.body;
 
+    if (!address || !address.trim()) {
+      return res.status(400).json({ message: "Delivery address is required" });
+    }
+
     const cart = await Cart.findOne({ user: req.user.id })
       .populate("items.productId")
       .lean();
@@ -19,12 +24,26 @@ router.post("/orders", authenticate, async (req, res) => {
       return res.status(400).json({ message: "Cart is empty" });
     }
 
+    // Guard against missing items (deleted products)
+    const missingItem = cart.items.find((i) => !i.productId);
+    if (missingItem) {
+      return res.status(400).json({ message: "Cart has invalid items" });
+    }
+
     const restaurantId = cart.items[0].productId.restaurant;
+
+    // Ensure all items are from the same restaurant
+    const mixedRestaurant = cart.items.some(
+      (i) => i.productId.restaurant.toString() !== restaurantId.toString(),
+    );
+    if (mixedRestaurant) {
+      return res.status(400).json({ message: "Cart contains multiple restaurants" });
+    }
 
     const items = cart.items.map((i) => ({
       productId: i.productId._id,
       name: i.productId.name,
-      price: i.productId.offerPrice,
+      price: i.productId.offerPrice || i.productId.price,
       quantity: i.quantity,
     }));
 
@@ -90,6 +109,24 @@ router.patch("/orders/:id/status", authenticate, async (req, res) => {
   try {
     const { status } = req.body;
 
+    const allowedStatuses = [
+      "PENDING_PAYMENT",
+      "PAID",
+      "ACCEPTED",
+      "PREPARING",
+      "OUT_FOR_DELIVERY",
+      "DELIVERED",
+      "CANCELED",
+    ];
+
+    if (!allowedStatuses.includes(status)) {
+      return res.status(400).json({ message: "Invalid status" });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ message: "Invalid order id" });
+    }
+
     const restaurant = await Restaurant.findOne({ owner: req.user.id });
     if (!restaurant) {
       return res.status(403).json({ message: "Not restaurant owner" });
@@ -100,6 +137,10 @@ router.patch("/orders/:id/status", authenticate, async (req, res) => {
       { status },
       { new: true },
     );
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
 
     res.json({ success: true, order });
   } catch {

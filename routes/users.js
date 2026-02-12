@@ -4,19 +4,18 @@ const User = require("../models/user");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const Cart = require("../models/cart");
-const dotenv = require("dotenv");
 const authenticate = require("../middleware/authenticate");
 const isAdmin = require("../middleware/isAdmin");
-const Restaurant = require("../models/restaurant");
-const Item = require("../models/item");
 const Joi = require("joi");
 const rateLimit = require("express-rate-limit");
 
 // Get all users
-router.get("/users", async (req, res) => {
+router.get("/users", authenticate, isAdmin, async (req, res) => {
   try {
-    const users = await User.find();
-    res.status(200).json(users);
+    const users = await User.find()
+      .select("name email phone role isBanned lastLoginAt createdAt")
+      .lean();
+    res.status(200).json({ success: true, users });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -79,7 +78,7 @@ router.post("/register", registerLimiter, async (req, res) => {
       email,
       phone,
       password: hashedPassword,
-      role: "user",
+      role: "customer",
     });
 
     // Remove password from response
@@ -211,10 +210,9 @@ router.delete("/delete/:userId", authenticate, isAdmin, async (req, res) => {
     if (!userIdToDelete)
       return res.status(400).json({ message: "User ID is required" });
 
-    const user = await User.findById(userIdToDelete);
-    if (!user) return res.status(404).json({ message: "User not found" });
+    const deletedUser = await User.findByIdAndDelete(userIdToDelete);
+    if (!deletedUser) return res.status(404).json({ message: "User not found" });
 
-    await user.remove();
     res.status(200).json({ message: "User deleted successfully" });
   } catch (err) {
     res.status(500).json({ message: "Server Error" });

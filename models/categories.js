@@ -39,6 +39,4 @@ const CategorySchema = new Schema(
   },
 );
 
-CategorySchema.index({ category: 1 }, { unique: true });
-
 module.exports = model("Category", CategorySchema);
