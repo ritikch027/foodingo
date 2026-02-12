@@ -12,7 +12,7 @@ router.get("/cart", authenticate, async (req, res) => {
     const cart = await Cart.findOne({ user: req.user.id })
       .populate({
         path: "items.productId",
-        select: "name offerPrice price discountPercent image.url isVeg",
+        select: "_id name offerPrice price discountPercent image.url isVeg",
       })
       .select("items")
       .lean();
