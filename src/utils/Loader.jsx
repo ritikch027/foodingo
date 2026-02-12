@@ -8,6 +8,7 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { colors, radii, spacing, typography, shadows } from '../theme';
 
 const Loader = () => {
   const rotate = useSharedValue(0);
@@ -19,7 +20,7 @@ const Loader = () => {
       -1,
     );
 
-    scale.value = withRepeat(withTiming(1.1, { duration: 800 }), -1, true);
+    scale.value = withRepeat(withTiming(1.05, { duration: 800 }), -1, true);
   }, []);
 
   const rotateStyle = useAnimatedStyle(() => ({
@@ -29,7 +30,7 @@ const Loader = () => {
   return (
     <View style={styles.container}>
       <Animated.View style={[styles.iconWrap, rotateStyle]}>
-        <Ionicons name="fast-food-outline" size={64} color="#4f46e5" />
+        <Ionicons name="fast-food-outline" size={56} color={colors.primary} />
       </Animated.View>
 
       <Text style={styles.text}>Loading delicious food...</Text>
@@ -44,24 +45,24 @@ export default Loader;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
+    backgroundColor: colors.bg,
     justifyContent: 'center',
     alignItems: 'center',
   },
 
   iconWrap: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
-    backgroundColor: '#eef2ff',
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    backgroundColor: colors.tintAlt,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: spacing.md,
+    ...shadows.soft,
   },
 
   text: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#6b7280',
+    ...typography.sub,
+    color: colors.muted,
   },
 });

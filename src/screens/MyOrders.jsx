@@ -14,17 +14,7 @@ import OrderCard from '../components/OrderCard';
 import api from '../utils/api';
 import Toast from 'react-native-toast-message';
 import Loader from '../utils/Loader';
-
-/**
- * Enhanced MyOrders Screen
- *
- * Features:
- * - Filter tabs (All, Preparing, Delivered)
- * - Pull to refresh
- * - Empty state
- * - Order cards with status
- * - Smooth animations
- */
+import { colors, radii, spacing, typography, shadows, motion } from '../theme';
 
 const MyOrders = ({ navigation }) => {
   const insets = useSafeAreaInsets();
@@ -69,7 +59,7 @@ const MyOrders = ({ navigation }) => {
   const EmptyState = () => (
     <View style={styles.emptyContainer}>
       <View style={styles.emptyIconContainer}>
-        <Icon name="package" size={60} color="#9ca3af" />
+        <Icon name="package" size={54} color={colors.muted} />
       </View>
       <Text style={styles.emptyTitle}>No Orders Yet</Text>
       <Text style={styles.emptySubtitle}>
@@ -79,7 +69,7 @@ const MyOrders = ({ navigation }) => {
       </Text>
       <Pressable
         style={styles.browseButton}
-        onPress={() => navigation.navigate('Home')}
+        onPress={() => navigation.navigate('HomeWithDrawer')}
       >
         <Text style={styles.browseButtonText}>Browse Restaurants</Text>
       </Pressable>
@@ -92,8 +82,11 @@ const MyOrders = ({ navigation }) => {
     <View style={[styles.container, { paddingTop: insets.top + 10 }]}>
       {/* Header */}
       <View style={styles.headerSection}>
-        <Animated.View entering={FadeInDown} style={styles.headerContent}>
-          <Icon name="package" size={24} color="#4f46e5" />
+        <Animated.View
+          entering={FadeInDown.duration(motion.fadeDuration)}
+          style={styles.headerContent}
+        >
+          <Icon name="package" size={22} color={colors.primary} />
           <Text style={styles.headingTxt}>My Orders</Text>
         </Animated.View>
 
@@ -106,7 +99,7 @@ const MyOrders = ({ navigation }) => {
 
       {/* Filter Tabs */}
       <Animated.View
-        entering={FadeInDown.delay(100)}
+        entering={FadeInDown.duration(motion.fadeDuration).delay(60)}
         style={styles.filterContainer}
       >
         {filterOptions.map(filter => (
@@ -140,7 +133,7 @@ const MyOrders = ({ navigation }) => {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor="#4f46e5"
+            tintColor={colors.primary}
           />
         }
         ListEmptyComponent={<EmptyState />}
@@ -176,13 +169,13 @@ export default MyOrders;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
+    backgroundColor: colors.bg,
   },
 
   /* Header */
   headerSection: {
-    paddingHorizontal: 20,
-    paddingVertical: 20,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.lg,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -191,26 +184,25 @@ const styles = StyleSheet.create({
   headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: spacing.sm,
   },
 
   headingTxt: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#111827',
+    ...typography.h1,
+    color: colors.text,
   },
 
   orderCountBadge: {
-    backgroundColor: '#4f46e5',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 15,
+    backgroundColor: colors.primary,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: 999,
     minWidth: 30,
     alignItems: 'center',
   },
 
   orderCountText: {
-    color: '#fff',
+    color: colors.surface,
     fontSize: 14,
     fontWeight: '700',
   },
@@ -218,39 +210,38 @@ const styles = StyleSheet.create({
   /* Filters */
   filterContainer: {
     flexDirection: 'row',
-    paddingHorizontal: 20,
-    marginBottom: 16,
-    gap: 8,
+    paddingHorizontal: spacing.lg,
+    marginBottom: spacing.md,
+    gap: spacing.sm,
   },
 
   filterTab: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: '#fff',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: 999,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
+    borderColor: colors.border,
   },
 
   filterTabActive: {
-    backgroundColor: '#4f46e5',
-    borderColor: '#4f46e5',
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
 
   filterText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#6b7280',
+    ...typography.caption,
+    color: colors.muted,
   },
 
   filterTextActive: {
-    color: '#fff',
+    color: colors.surface,
   },
 
   /* List */
   listContainer: {
-    paddingHorizontal: 20,
-    paddingBottom: 20,
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.md,
     flexGrow: 1,
   },
 
@@ -259,40 +250,40 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 40,
-    paddingTop: 60,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.xl,
   },
 
   emptyIconContainer: {
-    backgroundColor: '#f3f4f6',
-    padding: 30,
+    backgroundColor: colors.surface,
+    padding: spacing.xl,
     borderRadius: 50,
-    marginBottom: 20,
+    marginBottom: spacing.md,
+    ...shadows.soft,
   },
 
   emptyTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#111827',
-    marginBottom: 8,
+    ...typography.h3,
+    color: colors.text,
+    marginBottom: spacing.xs,
   },
 
   emptySubtitle: {
-    fontSize: 16,
-    color: '#6b7280',
+    ...typography.sub,
+    color: colors.muted,
     textAlign: 'center',
-    marginBottom: 24,
+    marginBottom: spacing.md,
   },
 
   browseButton: {
-    backgroundColor: '#4f46e5',
-    paddingHorizontal: 24,
-    paddingVertical: 14,
-    borderRadius: 14,
+    backgroundColor: colors.primary,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: 12,
+    borderRadius: radii.md,
   },
 
   browseButtonText: {
-    color: '#fff',
+    color: colors.surface,
     fontSize: 16,
     fontWeight: '700',
   },

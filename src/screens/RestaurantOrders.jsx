@@ -8,8 +8,8 @@ import {
 } from 'react-native';
 import api from '../utils/api';
 import Toast from 'react-native-toast-message';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import Loader from '../utils/Loader';
+import { colors, radii, spacing, typography, shadows } from '../theme';
 
 const RestaurantOrders = () => {
   const [orders, setOrders] = useState([]);
@@ -17,9 +17,7 @@ const RestaurantOrders = () => {
 
   const fetchOrders = async () => {
     try {
-      const token = await AsyncStorage.getItem('token');
-      if (!token) return;
-      const res = await api.get('/restaurant/orders', { token });
+      const res = await api.get('/restaurant/orders');
       setOrders(res.data.orders);
     } catch {
       Toast.show({
@@ -48,10 +46,10 @@ const RestaurantOrders = () => {
   }, []);
 
   if (loading) return <Loader />;
-  if (orders.length == 0) {
+  if (orders.length === 0) {
     return (
-      <View>
-        <Text>No Remaining Orders</Text>
+      <View style={styles.emptyWrap}>
+        <Text style={styles.emptyText}>No Remaining Orders</Text>
       </View>
     );
   }
@@ -64,8 +62,11 @@ const RestaurantOrders = () => {
         <View style={styles.card}>
           <Text style={styles.title}>Order #{item._id.slice(-6)}</Text>
 
-          <Text>Status: {item.status}</Text>
-          <Text>Total: ₹{item.total}</Text>
+          <Text style={styles.meta}>Status: {item.status}</Text>
+          <Text style={styles.meta}>
+            Total: {'\u20B9'}
+            {item.total}
+          </Text>
 
           <View style={styles.actions}>
             <TouchableOpacity
@@ -92,32 +93,51 @@ export default RestaurantOrders;
 
 const styles = StyleSheet.create({
   container: {
-    padding: 20,
+    padding: spacing.lg,
+    backgroundColor: colors.bg,
   },
   card: {
-    backgroundColor: '#fff',
-    padding: 16,
-    borderRadius: 14,
-    marginBottom: 14,
+    backgroundColor: colors.surface,
+    padding: spacing.md,
+    borderRadius: radii.lg,
+    marginBottom: spacing.sm,
+    ...shadows.card,
   },
   title: {
-    fontWeight: '700',
-    marginBottom: 8,
+    ...typography.h3,
+    color: colors.text,
+    marginBottom: spacing.xs,
+  },
+  meta: {
+    ...typography.sub,
+    color: colors.muted,
   },
   actions: {
     flexDirection: 'row',
-    marginTop: 10,
+    marginTop: spacing.sm,
   },
   btn: {
-    backgroundColor: '#4f46e5',
-    padding: 10,
-    borderRadius: 10,
-    marginRight: 10,
+    backgroundColor: colors.primary,
+    paddingVertical: 10,
+    paddingHorizontal: spacing.md,
+    borderRadius: radii.md,
+    marginRight: spacing.sm,
   },
   green: {
-    backgroundColor: '#10b981',
+    backgroundColor: colors.accent,
   },
   btnText: {
-    color: '#fff',
+    color: colors.surface,
+    fontWeight: '700',
+  },
+  emptyWrap: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.bg,
+  },
+  emptyText: {
+    ...typography.sub,
+    color: colors.muted,
   },
 });

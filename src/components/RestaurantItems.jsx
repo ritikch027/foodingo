@@ -1,11 +1,12 @@
 import { StyleSheet, Text, View } from 'react-native';
-import Items from '../utils/ItemCard';
+import ItemsGrid from '../components/ItemsGrid';
 import { useRoute } from '@react-navigation/native';
 import { useState, useEffect } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import api from '../utils/api';
 import Toast from 'react-native-toast-message';
 import Loader from '../utils/Loader';
+import { colors, spacing, typography } from '../theme';
 
 const RestaurantItems = () => {
   const route = useRoute();
@@ -55,7 +56,7 @@ const RestaurantItems = () => {
       </View>
 
       {/* Items Grid */}
-      <Items items={items} />
+      <ItemsGrid items={items} />
 
       <Toast />
     </View>
@@ -69,24 +70,23 @@ export default RestaurantItems;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
+    backgroundColor: colors.bg,
   },
 
   header: {
-    paddingHorizontal: 20,
-    paddingBottom: 10,
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.sm,
   },
 
   subtitle: {
-    fontSize: 14,
-    color: '#6b7280',
-    marginBottom: 4,
+    ...typography.caption,
+    color: colors.muted,
+    marginBottom: spacing.xs,
   },
 
   title: {
-    fontSize: 26,
-    fontWeight: '800',
-    color: '#111827',
+    ...typography.h1,
+    color: colors.text,
   },
 
   center: {
@@ -96,8 +96,7 @@ const styles = StyleSheet.create({
   },
 
   errorText: {
-    fontSize: 16,
-    color: '#ef4444',
-    fontWeight: '600',
+    ...typography.sub,
+    color: colors.error,
   },
 });

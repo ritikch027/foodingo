@@ -10,6 +10,7 @@ import { CropView } from 'react-native-image-crop-tools';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { colors, radii, spacing, typography, shadows } from '../theme';
 
 export default function MyCropScreen({ navigation }) {
   const insets = useSafeAreaInsets();
@@ -34,7 +35,7 @@ export default function MyCropScreen({ navigation }) {
       {/* Header */}
       <View style={styles.header}>
         <Pressable onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={26} color="#111827" />
+          <Ionicons name="arrow-back" size={24} color={colors.text} />
         </Pressable>
 
         <Text style={styles.title}>Crop Image</Text>
@@ -44,7 +45,7 @@ export default function MyCropScreen({ navigation }) {
 
       {!uri && (
         <View style={styles.center}>
-          <Ionicons name="image-outline" size={80} color="#9ca3af" />
+          <Ionicons name="image-outline" size={72} color={colors.muted} />
           <Text style={styles.emptyText}>Choose an image to crop</Text>
 
           <Pressable style={styles.primaryBtn} onPress={pickImage}>
@@ -64,7 +65,6 @@ export default function MyCropScreen({ navigation }) {
             onImageCrop={res => {
               setLoading(false);
               console.log('cropped URI:', res.uri);
-              // You can navigate back or upload here
             }}
           />
 
@@ -75,7 +75,7 @@ export default function MyCropScreen({ navigation }) {
 
             <Pressable style={styles.primaryBtn} onPress={saveCropped}>
               {loading ? (
-                <ActivityIndicator color="#fff" />
+                <ActivityIndicator color={colors.surface} />
               ) : (
                 <Text style={styles.primaryText}>Crop & Save</Text>
               )}
@@ -92,81 +92,80 @@ export default function MyCropScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
+    backgroundColor: colors.bg,
   },
 
   header: {
     height: 56,
-    paddingHorizontal: 16,
+    paddingHorizontal: spacing.md,
     borderBottomWidth: 1,
-    borderColor: '#e5e7eb',
+    borderColor: colors.border,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#fff',
+    backgroundColor: colors.surface,
   },
 
   title: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#111827',
+    ...typography.h3,
+    color: colors.text,
   },
 
   center: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 30,
+    padding: spacing.lg,
   },
 
   emptyText: {
-    fontSize: 16,
-    color: '#6b7280',
-    marginTop: 16,
-    marginBottom: 24,
+    ...typography.sub,
+    color: colors.muted,
+    marginTop: spacing.sm,
+    marginBottom: spacing.lg,
   },
 
   cropView: {
     flex: 1,
-    margin: 16,
-    borderRadius: 20,
+    margin: spacing.md,
+    borderRadius: radii.lg,
     overflow: 'hidden',
     backgroundColor: '#000',
   },
 
   footer: {
-    padding: 16,
+    padding: spacing.md,
     borderTopWidth: 1,
-    borderColor: '#e5e7eb',
+    borderColor: colors.border,
     flexDirection: 'row',
-    gap: 12,
-    backgroundColor: '#fff',
+    gap: spacing.sm,
+    backgroundColor: colors.surface,
   },
 
   primaryBtn: {
     flex: 1,
-    backgroundColor: '#4f46e5',
-    paddingVertical: 14,
-    borderRadius: 14,
+    backgroundColor: colors.primary,
+    paddingVertical: 12,
+    borderRadius: radii.md,
     alignItems: 'center',
   },
 
   primaryText: {
-    color: '#fff',
+    color: colors.surface,
     fontWeight: '700',
     fontSize: 16,
   },
 
   secondaryBtn: {
     flex: 1,
-    backgroundColor: '#e5e7eb',
-    paddingVertical: 14,
-    borderRadius: 14,
+    backgroundColor: colors.border,
+    paddingVertical: 12,
+    borderRadius: radii.md,
     alignItems: 'center',
   },
 
   secondaryText: {
-    color: '#111827',
+    color: colors.text,
     fontWeight: '700',
     fontSize: 16,
   },

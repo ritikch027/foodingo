@@ -7,6 +7,7 @@ import { UserContext } from '../utils/userContext';
 import { View, Text, StyleSheet } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import Icon from 'react-native-vector-icons/Feather';
+import { colors, spacing, typography, shadows, motion } from '../theme';
 
 const AddItem = ({ navigation }) => {
   const { user, foodItems } = useContext(UserContext);
@@ -21,7 +22,7 @@ const AddItem = ({ navigation }) => {
     },
     {
       name: 'price',
-      label: 'Price (₹)',
+      label: `Price (${'\u20B9'})`,
       placeholder: 'Enter item price',
       required: true,
       keyboardType: 'decimal-pad',
@@ -133,11 +134,7 @@ const AddItem = ({ navigation }) => {
         image,
       };
 
-      const res = await api.post(`/items/${user.restaurant}`, itemData, {
-        headers: {
-          authorization: token,
-        },
-      });
+      const res = await api.post(`/items/${user.restaurant}`, itemData);
 
       if (res.data.success) {
         Toast.show({
@@ -170,9 +167,12 @@ const AddItem = ({ navigation }) => {
   return (
     <View style={styles.container}>
       {/* Header */}
-      <Animated.View entering={FadeInDown} style={styles.header}>
+      <Animated.View
+        entering={FadeInDown.duration(motion.fadeDuration)}
+        style={styles.header}
+      >
         <View style={styles.iconWrap}>
-          <Icon name="package" size={32} color="#4f46e5" />
+          <Icon name="package" size={30} color={colors.primary} />
         </View>
         <Text style={styles.title}>Add New Item</Text>
         <Text style={styles.subtitle}>
@@ -199,36 +199,35 @@ export default AddItem;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
+    backgroundColor: colors.bg,
   },
 
   header: {
     alignItems: 'center',
-    paddingVertical: 40,
+    paddingVertical: spacing.xl,
   },
 
   iconWrap: {
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: '#eef2ff',
+    backgroundColor: colors.tintAlt,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
-    elevation: 3,
+    marginBottom: spacing.md,
+    ...shadows.soft,
   },
 
   title: {
-    fontSize: 26,
-    fontWeight: '800',
-    color: '#111827',
-    marginBottom: 6,
+    ...typography.h1,
+    color: colors.text,
+    marginBottom: spacing.xs,
   },
 
   subtitle: {
-    fontSize: 14,
-    color: '#6b7280',
+    ...typography.sub,
+    color: colors.muted,
     textAlign: 'center',
-    paddingHorizontal: 40,
+    paddingHorizontal: spacing.xl,
   },
 });

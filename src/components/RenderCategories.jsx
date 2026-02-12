@@ -1,16 +1,10 @@
 import React, { useContext } from 'react';
 import { UserContext } from '../utils/userContext';
 import { useNavigation } from '@react-navigation/native';
-import {
-  FlatList,
-  View,
-  Text,
-  Image,
-  StyleSheet,
-  Pressable,
-} from 'react-native';
+import { FlatList, View, Text, Image, StyleSheet, Pressable } from 'react-native';
 
 import Animated, { FadeInRight, Layout } from 'react-native-reanimated';
+import { colors, radii, spacing, typography, shadows, motion } from '../theme';
 
 const RenderCategories = () => {
   const navigation = useNavigation();
@@ -18,7 +12,9 @@ const RenderCategories = () => {
 
   const renderItem = ({ item, index }) => (
     <Animated.View
-      entering={FadeInRight.delay(index * 60)}
+      entering={FadeInRight.duration(motion.fadeDuration).delay(
+        index * motion.fadeDelay,
+      )}
       layout={Layout.springify()}
       style={styles.card}
     >
@@ -26,7 +22,7 @@ const RenderCategories = () => {
         onPress={() =>
           navigation.navigate('CategoryItem', { category: item.category })
         }
-        style={({ pressed }) => [styles.cardInner, pressed && { opacity: 0.8 }]}
+        style={({ pressed }) => [styles.cardInner, pressed && styles.pressed]}
       >
         <View style={styles.imageWrap}>
           <Image source={{ uri: item.image.url }} style={styles.image} />
@@ -41,10 +37,8 @@ const RenderCategories = () => {
 
   if (!foodItems.length) {
     return (
-      <View
-        style={{ height: 130, justifyContent: 'center', alignItems: 'center' }}
-      >
-        <Text style={{ color: '#9ca3af' }}>Loading categories...</Text>
+      <View style={styles.loadingWrap}>
+        <Text style={styles.loadingText}>Loading categories...</Text>
       </View>
     );
   }
@@ -69,17 +63,17 @@ export default RenderCategories;
 
 const styles = StyleSheet.create({
   wrapper: {
-    height: 100,
-    marginTop: 10,
+    height: 110,
+    marginTop: spacing.sm,
   },
 
   flatListContent: {
-    paddingHorizontal: 20,
+    paddingHorizontal: spacing.lg,
   },
 
   card: {
-    width: 80,
-    marginRight: 16,
+    width: 92,
+    marginRight: spacing.md,
     alignItems: 'center',
   },
 
@@ -87,27 +81,43 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
+  pressed: {
+    opacity: 0.8,
+  },
+
   imageWrap: {
     width: 70,
     height: 70,
     borderRadius: 35,
-    backgroundColor: '#eef2ff',
+    backgroundColor: colors.tintAlt,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 8,
-    elevation: 6,
+    marginBottom: spacing.xs,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    ...shadows.soft,
   },
 
   image: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
   },
 
   text: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#111827',
+    ...typography.caption,
+    color: colors.text,
     textAlign: 'center',
+  },
+
+  loadingWrap: {
+    height: 110,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  loadingText: {
+    ...typography.caption,
+    color: colors.muted,
   },
 });

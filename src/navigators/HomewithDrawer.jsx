@@ -20,8 +20,10 @@ import Profile from '../components/profile';
 import AddRestaurant from '../additionComponents/AddRestaurant';
 import AddItem from '../additionComponents/AddItems';
 import AddCategory from '../additionComponents/AddCategory';
+import OwnerItemsDashboard from '../screens/OwnerItemsDashboard';
 
 import Animated, { FadeInDown } from 'react-native-reanimated';
+import { colors, radii, spacing, typography, shadows, motion } from '../theme';
 
 const Drawer = createDrawerNavigator();
 
@@ -55,14 +57,15 @@ const CustomDrawerContent = props => {
 
   const menuItems = [
     { name: 'Home', icon: 'home', screen: 'Home' },
-    { name: 'My Orders', screen: 'MyOrders' },
+    { name: 'My Orders', screen: 'MyOrders', icon: 'shopping-bag' },
     { name: 'Profile', icon: 'user', screen: 'Profile' },
 
     ...(user?.role === 'owner'
       ? [
           { name: 'Add Items', icon: 'package', screen: 'AddItem' },
+          { name: 'Manage Items', icon: 'edit-3', screen: 'OwnerItemsDashboard' },
           { name: 'Delete Restaurant', icon: 'trash-2', screen: 'AddItem' },
-          { name: 'Orders', screen: 'RestaurantOrders' },
+          { name: 'Orders', icon: 'clipboard', screen: 'RestaurantOrders' },
         ]
       : []),
 
@@ -84,7 +87,10 @@ const CustomDrawerContent = props => {
     <View style={styles.drawerContainer}>
       <DrawerContentScrollView {...props} showsVerticalScrollIndicator={false}>
         {/* Header */}
-        <Animated.View entering={FadeInDown} style={styles.headerSection}>
+        <Animated.View
+          entering={FadeInDown.duration(motion.fadeDuration)}
+          style={styles.headerSection}
+        >
           <View style={styles.profileContainer}>
             <Image
               source={{
@@ -114,7 +120,12 @@ const CustomDrawerContent = props => {
         {/* Menu */}
         <View style={styles.menuSection}>
           {menuItems.map((item, index) => (
-            <Animated.View key={index} entering={FadeInDown.delay(index * 60)}>
+            <Animated.View
+              key={index}
+              entering={FadeInDown.duration(motion.fadeDuration).delay(
+                index * motion.fadeDelay,
+              )}
+            >
               <Pressable
                 style={({ pressed }) => [
                   styles.menuItem,
@@ -128,7 +139,7 @@ const CustomDrawerContent = props => {
                   }
                 }}
               >
-                <Icon name={item.icon} size={20} color="#4f46e5" />
+                <Icon name={item.icon} size={20} color={colors.primary} />
                 <Text style={styles.menuText}>{item.name}</Text>
               </Pressable>
             </Animated.View>
@@ -147,21 +158,21 @@ const CustomDrawerContent = props => {
               style={[styles.socialButton, { backgroundColor: '#E1306C' }]}
               onPress={() => openSocialMedia('instagram')}
             >
-              <Icon name="instagram" size={20} color="#fff" />
+              <Icon name="instagram" size={20} color={colors.surface} />
             </Pressable>
 
             <Pressable
               style={[styles.socialButton, { backgroundColor: '#1877F2' }]}
               onPress={() => openSocialMedia('facebook')}
             >
-              <Icon name="facebook" size={20} color="#fff" />
+              <Icon name="facebook" size={20} color={colors.surface} />
             </Pressable>
 
             <Pressable
               style={[styles.socialButton, { backgroundColor: '#1DA1F2' }]}
               onPress={() => openSocialMedia('twitter')}
             >
-              <Icon name="twitter" size={20} color="#fff" />
+              <Icon name="twitter" size={20} color={colors.surface} />
             </Pressable>
           </View>
         </View>
@@ -176,7 +187,7 @@ const CustomDrawerContent = props => {
           ]}
           onPress={handleLogout}
         >
-          <Icon name="log-out" size={20} color="#ef4444" />
+          <Icon name="log-out" size={20} color={colors.error} />
           <Text style={styles.logoutText}>Logout</Text>
         </Pressable>
 
@@ -196,7 +207,7 @@ const HomeWithDrawer = () => {
         headerShown: false,
         drawerStyle: {
           width: 280,
-          backgroundColor: '#fff',
+          backgroundColor: colors.surface,
         },
         drawerType: 'slide',
         overlayColor: 'rgba(0,0,0,0.4)',
@@ -207,6 +218,10 @@ const HomeWithDrawer = () => {
       <Drawer.Screen name="AddRestaurant" component={AddRestaurant} />
       <Drawer.Screen name="AddItem" component={AddItem} />
       <Drawer.Screen name="AddCategory" component={AddCategory} />
+      <Drawer.Screen
+        name="OwnerItemsDashboard"
+        component={OwnerItemsDashboard}
+      />
     </Drawer.Navigator>
   );
 };
@@ -218,16 +233,16 @@ export default HomeWithDrawer;
 const styles = StyleSheet.create({
   drawerContainer: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: colors.surface,
   },
 
   headerSection: {
-    backgroundColor: '#eef2ff',
-    paddingVertical: 30,
-    paddingHorizontal: 20,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-    marginBottom: 10,
+    backgroundColor: colors.tintAlt,
+    paddingVertical: spacing.xl,
+    paddingHorizontal: spacing.lg,
+    borderBottomLeftRadius: radii.xl,
+    borderBottomRightRadius: radii.xl,
+    marginBottom: spacing.sm,
   },
 
   profileContainer: {
@@ -240,77 +255,74 @@ const styles = StyleSheet.create({
     height: 64,
     borderRadius: 32,
     borderWidth: 3,
-    borderColor: '#fff',
+    borderColor: colors.surface,
   },
 
   profileInfo: {
-    marginLeft: 14,
+    marginLeft: spacing.md,
     flex: 1,
   },
 
   userName: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: '#111827',
-    marginBottom: 6,
+    ...typography.h3,
+    color: colors.text,
+    marginBottom: spacing.xs,
   },
 
   roleBadge: {
-    backgroundColor: '#4f46e5',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
+    backgroundColor: colors.primary,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: 999,
     alignSelf: 'flex-start',
   },
 
   roleText: {
-    color: '#fff',
+    color: colors.surface,
     fontSize: 12,
     fontWeight: '700',
   },
 
   menuSection: {
-    paddingHorizontal: 10,
-    paddingTop: 10,
+    paddingHorizontal: spacing.sm,
+    paddingTop: spacing.sm,
   },
 
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    borderRadius: 14,
+    paddingVertical: 12,
+    paddingHorizontal: spacing.lg,
+    borderRadius: radii.lg,
     marginVertical: 4,
   },
 
   menuPressed: {
-    backgroundColor: '#eef2ff',
+    backgroundColor: colors.tint,
   },
 
   menuText: {
-    fontSize: 16,
-    color: '#111827',
-    marginLeft: 15,
-    fontWeight: '600',
+    ...typography.sub,
+    color: colors.text,
+    marginLeft: spacing.md,
   },
 
   divider: {
     height: 1,
-    backgroundColor: '#e5e7eb',
-    marginVertical: 20,
-    marginHorizontal: 20,
+    backgroundColor: colors.border,
+    marginVertical: spacing.lg,
+    marginHorizontal: spacing.lg,
   },
 
   socialSection: {
-    paddingHorizontal: 20,
-    paddingBottom: 20,
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.lg,
   },
 
   socialTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#111827',
-    marginBottom: 15,
+    ...typography.sub,
+    color: colors.text,
+    marginBottom: spacing.sm,
   },
 
   socialContainer: {
@@ -324,36 +336,35 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
-    elevation: 3,
+    ...shadows.soft,
   },
 
   footerSection: {
     borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
-    paddingVertical: 20,
-    paddingHorizontal: 20,
+    borderTopColor: colors.border,
+    paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.lg,
   },
 
   logoutButton: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 14,
-    backgroundColor: '#fef2f2',
-    marginBottom: 10,
+    paddingHorizontal: spacing.lg,
+    borderRadius: radii.lg,
+    backgroundColor: '#FEF2F2',
+    marginBottom: spacing.sm,
   },
 
   logoutText: {
-    fontSize: 16,
-    color: '#ef4444',
-    marginLeft: 15,
-    fontWeight: '700',
+    ...typography.sub,
+    color: colors.error,
+    marginLeft: spacing.md,
   },
 
   versionText: {
-    fontSize: 12,
-    color: '#9ca3af',
+    ...typography.caption,
+    color: colors.muted,
     textAlign: 'center',
   },
 });

@@ -1,17 +1,30 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { colors, radii, spacing, typography, shadows } from '../theme';
 
 const OrderSuccess = ({ route, navigation }) => {
-  const { order } = route.params;
+  const { order, orderId } = route.params || {};
+  const displayId = order?._id?.slice(-6) || orderId || 'N/A';
+  const displayStatus = order?.status || 'Confirmed';
+  const displayTotal = order?.totalAmount;
 
   return (
     <View style={styles.container}>
-      <Text style={styles.big}>🎉 Order Confirmed</Text>
+      <View style={styles.iconWrap}>
+        <Text style={styles.iconText}>{'\uD83C\uDF89'}</Text>
+      </View>
 
-      <Text style={styles.id}>Order #{order._id.slice(-6)}</Text>
+      <Text style={styles.big}>Order Confirmed</Text>
 
-      <Text>Status: {order.status}</Text>
-      <Text>Total: ₹{order.totalAmount}</Text>
+      <Text style={styles.id}>Order #{displayId}</Text>
+
+      <Text style={styles.metaText}>Status: {displayStatus}</Text>
+      {displayTotal != null && (
+        <Text style={styles.metaText}>
+          Total: {'\u20B9'}
+          {displayTotal}
+        </Text>
+      )}
 
       <TouchableOpacity
         style={styles.btn}
@@ -30,28 +43,52 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 40,
+    padding: spacing.xl,
+    backgroundColor: colors.bg,
+  },
+
+  iconWrap: {
+    width: 84,
+    height: 84,
+    borderRadius: 42,
+    backgroundColor: colors.tintAlt,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.md,
+    ...shadows.soft,
+  },
+
+  iconText: {
+    fontSize: 36,
   },
 
   big: {
-    fontSize: 28,
-    fontWeight: '800',
-    marginBottom: 20,
+    ...typography.h1,
+    color: colors.text,
+    marginBottom: spacing.sm,
   },
 
   id: {
-    marginBottom: 10,
+    ...typography.sub,
+    color: colors.muted,
+    marginBottom: spacing.sm,
+  },
+
+  metaText: {
+    ...typography.sub,
+    color: colors.text,
   },
 
   btn: {
-    marginTop: 40,
-    backgroundColor: '#4f46e5',
-    padding: 14,
-    borderRadius: 12,
+    marginTop: spacing.lg,
+    backgroundColor: colors.primary,
+    paddingVertical: 12,
+    paddingHorizontal: spacing.lg,
+    borderRadius: radii.md,
   },
 
   btnText: {
-    color: '#fff',
-    fontWeight: '600',
+    color: colors.surface,
+    fontWeight: '700',
   },
 });

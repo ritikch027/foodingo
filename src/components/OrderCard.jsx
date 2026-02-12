@@ -2,25 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-
-/**
- * OrderCard Component - Enhanced version for My Orders screen
- *
- * Features:
- * - Multiple status variants (Preparing, On the way, Delivered)
- * - Animated entrance
- * - Color-coded status badges
- * - View details action
- *
- * @param {string} restaurantName - Restaurant name
- * @param {string} status - 'Preparing' | 'On the way' | 'Delivered'
- * @param {number} total - Total price
- * @param {string} orderId - Order ID
- * @param {string} orderDate - Order date
- * @param {array} items - Array of item names
- * @param {function} onViewDetails - Callback for view details
- * @param {number} index - Index for stagger animation
- */
+import { colors, radii, spacing, typography, shadows, motion } from '../theme';
 
 const OrderCard = ({
   restaurantName,
@@ -34,18 +16,18 @@ const OrderCard = ({
 }) => {
   const statusConfig = {
     Preparing: {
-      color: '#f59e0b',
-      bg: '#fef3c7',
+      color: colors.warning,
+      bg: colors.tintAlt,
       icon: 'clock',
     },
     'On the way': {
-      color: '#3b82f6',
-      bg: '#dbeafe',
+      color: colors.info,
+      bg: '#DBEAFE',
       icon: 'truck',
     },
     Delivered: {
-      color: '#22c55e',
-      bg: '#dcfce7',
+      color: colors.accent,
+      bg: '#DCFCE7',
       icon: 'check-circle',
     },
   };
@@ -53,7 +35,12 @@ const OrderCard = ({
   const currentStatus = statusConfig[status] || statusConfig.Preparing;
 
   return (
-    <Animated.View entering={FadeInDown.delay(index * 80)} style={styles.card}>
+    <Animated.View
+      entering={FadeInDown.duration(motion.fadeDuration).delay(
+        index * motion.fadeDelay,
+      )}
+      style={styles.card}
+    >
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
@@ -92,18 +79,21 @@ const OrderCard = ({
       <View style={styles.footer}>
         <View>
           <Text style={styles.dateText}>{orderDate}</Text>
-          <Text style={styles.totalText}>₹{total}</Text>
+          <Text style={styles.totalText}>
+            {'\u20B9'}
+            {total}
+          </Text>
         </View>
 
         <Pressable
           style={({ pressed }) => [
             styles.detailsButton,
-            pressed && { opacity: 0.8 },
+            pressed && { opacity: 0.85 },
           ]}
           onPress={onViewDetails}
         >
           <Text style={styles.detailsButtonText}>View Details</Text>
-          <Icon name="arrow-right" size={16} color="#fff" />
+          <Icon name="arrow-right" size={16} color={colors.surface} />
         </Pressable>
       </View>
     </Animated.View>
@@ -116,73 +106,68 @@ export default OrderCard;
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
+    backgroundColor: colors.surface,
+    borderRadius: radii.lg,
+    padding: spacing.md,
+    marginBottom: spacing.sm,
+    ...shadows.card,
   },
 
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 12,
+    marginBottom: spacing.sm,
   },
 
   headerLeft: {
     flex: 1,
-    marginRight: 12,
+    marginRight: spacing.sm,
   },
 
   restaurantName: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#111827',
-    marginBottom: 4,
+    ...typography.h3,
+    color: colors.text,
+    marginBottom: 2,
   },
 
   orderId: {
-    fontSize: 14,
-    color: '#6b7280',
+    ...typography.caption,
+    color: colors.muted,
   },
 
   statusBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 20,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: 999,
     gap: 4,
   },
 
   statusText: {
-    fontSize: 12,
-    fontWeight: '700',
+    ...typography.caption,
   },
 
   itemsContainer: {
-    marginBottom: 12,
+    marginBottom: spacing.sm,
   },
 
   itemsLabel: {
-    fontSize: 12,
-    color: '#6b7280',
-    marginBottom: 4,
+    ...typography.caption,
+    color: colors.muted,
+    marginBottom: spacing.xs,
   },
 
   itemsText: {
-    fontSize: 14,
-    color: '#374151',
+    ...typography.sub,
+    color: colors.text,
   },
 
   divider: {
     height: 1,
-    backgroundColor: '#f3f4f6',
-    marginVertical: 12,
+    backgroundColor: colors.border,
+    marginVertical: spacing.sm,
   },
 
   footer: {
@@ -192,30 +177,29 @@ const styles = StyleSheet.create({
   },
 
   dateText: {
-    fontSize: 12,
-    color: '#6b7280',
-    marginBottom: 4,
+    ...typography.caption,
+    color: colors.muted,
+    marginBottom: 2,
   },
 
   totalText: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#111827',
+    ...typography.h3,
+    color: colors.text,
   },
 
   detailsButton: {
-    backgroundColor: '#4f46e5',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 12,
+    backgroundColor: colors.primary,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: radii.md,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: spacing.xs,
   },
 
   detailsButtonText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
-    color: '#fff',
+    color: colors.surface,
   },
 });

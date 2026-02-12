@@ -12,6 +12,7 @@ import { useEffect, useState, useContext } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { UserContext } from '../utils/userContext';
 import Icon from 'react-native-vector-icons/Feather';
+import { colors, radii, spacing, typography, shadows } from '../theme';
 
 export const screenWidth = Dimensions.get('window').width;
 export const screenHeight = Dimensions.get('window').height;
@@ -38,7 +39,7 @@ const Cart = ({ navigation }) => {
   const EmptyCart = () => (
     <View style={styles.emptyContainer}>
       <View style={styles.emptyIconContainer}>
-        <Icon name="shopping-cart" size={60} color="#9ca3af" />
+        <Icon name="shopping-cart" size={54} color={colors.muted} />
       </View>
       <Text style={styles.emptyTitle}>Your Cart is Empty</Text>
       <Text style={styles.emptySubtitle}>
@@ -52,7 +53,7 @@ const Cart = ({ navigation }) => {
       {/* Header */}
       <View style={styles.headerSection}>
         <View style={styles.headerContent}>
-          <Icon name="shopping-cart" size={24} color="#4f46e5" />
+          <Icon name="shopping-cart" size={22} color={colors.primary} />
           <Text style={styles.headingTxt}>Your Cart</Text>
         </View>
 
@@ -77,16 +78,18 @@ const Cart = ({ navigation }) => {
             ]}
             renderItem={({ item }) => (
               <View style={styles.itemContainer}>
-                <Image
-                  style={styles.cartImg}
-                  source={{ uri: item.image.url }}
-                />
+                <Image style={styles.cartImg} source={{ uri: item.image?.url }} />
 
                 <View style={styles.itemDetails}>
-                  <Text style={styles.nameTxt}>{item.name}</Text>
+                  <Text style={styles.nameTxt} numberOfLines={1}>
+                    {item.name}
+                  </Text>
 
                   <View style={styles.priceContainer}>
-                    <Text style={styles.originalPrice}>₹{item.price}</Text>
+                    <Text style={styles.originalPrice}>
+                      {'\u20B9'}
+                      {item.price}
+                    </Text>
                     <View style={styles.discountBadge}>
                       <Text style={styles.discountText}>
                         {item.discountPercent}% OFF
@@ -94,7 +97,10 @@ const Cart = ({ navigation }) => {
                     </View>
                   </View>
 
-                  <Text style={styles.offerPrice}>₹{item.offerPrice}</Text>
+                  <Text style={styles.offerPrice}>
+                    {'\u20B9'}
+                    {item.offerPrice}
+                  </Text>
                 </View>
 
                 <View style={styles.counterContainer}>
@@ -110,7 +116,10 @@ const Cart = ({ navigation }) => {
           >
             <View>
               <Text style={styles.checkoutLabel}>Total</Text>
-              <Text style={styles.checkoutPrice}>₹{total.toFixed(2)}</Text>
+              <Text style={styles.checkoutPrice}>
+                {'\u20B9'}
+                {total.toFixed(2)}
+              </Text>
             </View>
 
             <TouchableOpacity
@@ -118,7 +127,7 @@ const Cart = ({ navigation }) => {
               onPress={() => navigation.navigate('Checkout')}
             >
               <Text style={styles.checkoutText}>Proceed to Checkout</Text>
-              <Icon name="arrow-right" size={20} color="#fff" />
+              <Icon name="arrow-right" size={18} color={colors.surface} />
             </TouchableOpacity>
           </View>
         </>
@@ -134,14 +143,14 @@ export default Cart;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
+    backgroundColor: colors.bg,
   },
 
   /* Header */
   headerSection: {
-    paddingVertical: 20,
-    paddingHorizontal: 20,
-    marginBottom: 10,
+    paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.lg,
+    marginBottom: spacing.sm,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -150,49 +159,48 @@ const styles = StyleSheet.create({
   headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: spacing.sm,
   },
 
   headingTxt: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#111827',
-    marginLeft: 12,
+    ...typography.h1,
+    color: colors.text,
   },
 
   itemBadge: {
-    backgroundColor: '#4f46e5',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 15,
+    backgroundColor: colors.primary,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: 999,
     minWidth: 30,
     alignItems: 'center',
   },
 
   itemBadgeText: {
-    color: '#fff',
+    color: colors.surface,
     fontSize: 14,
     fontWeight: '700',
   },
 
   /* List */
   listContainer: {
-    paddingHorizontal: 20,
+    paddingHorizontal: spacing.lg,
   },
 
   itemContainer: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    marginVertical: 8,
-    padding: 12,
-    elevation: 2,
+    backgroundColor: colors.surface,
+    borderRadius: radii.lg,
+    marginVertical: spacing.xs,
+    padding: spacing.sm,
+    ...shadows.card,
   },
 
   cartImg: {
     width: screenWidth * 0.22,
     height: screenHeight * 0.1,
-    borderRadius: 12,
-    marginRight: 12,
+    borderRadius: radii.md,
+    marginRight: spacing.sm,
   },
 
   itemDetails: {
@@ -201,47 +209,44 @@ const styles = StyleSheet.create({
   },
 
   nameTxt: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#111827',
-    marginBottom: 4,
+    ...typography.sub,
+    color: colors.text,
+    marginBottom: spacing.xs,
   },
 
   priceContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: spacing.xs,
   },
 
   originalPrice: {
-    fontSize: 14,
-    color: '#9ca3af',
+    ...typography.caption,
+    color: colors.muted,
     textDecorationLine: 'line-through',
-    marginRight: 8,
+    marginRight: spacing.sm,
   },
 
   discountBadge: {
-    backgroundColor: '#dcfce7',
-    paddingHorizontal: 6,
+    backgroundColor: '#DCFCE7',
+    paddingHorizontal: spacing.xs,
     paddingVertical: 2,
-    borderRadius: 6,
+    borderRadius: radii.xs,
   },
 
   discountText: {
-    fontSize: 12,
-    color: '#22c55e',
-    fontWeight: '700',
+    ...typography.caption,
+    color: colors.accent,
   },
 
   offerPrice: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#22c55e',
+    ...typography.body,
+    color: colors.accent,
   },
 
   counterContainer: {
     justifyContent: 'center',
-    marginLeft: 12,
+    marginLeft: spacing.sm,
   },
 
   /* Empty */
@@ -249,26 +254,26 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 40,
+    paddingHorizontal: spacing.xl,
   },
 
   emptyIconContainer: {
-    backgroundColor: '#f3f4f6',
-    padding: 30,
+    backgroundColor: colors.surface,
+    padding: spacing.xl,
     borderRadius: 50,
-    marginBottom: 20,
+    marginBottom: spacing.md,
+    ...shadows.soft,
   },
 
   emptyTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#111827',
-    marginBottom: 8,
+    ...typography.h3,
+    color: colors.text,
+    marginBottom: spacing.xs,
   },
 
   emptySubtitle: {
-    fontSize: 16,
-    color: '#6b7280',
+    ...typography.sub,
+    color: colors.muted,
     textAlign: 'center',
   },
 
@@ -278,40 +283,39 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: '#fff',
+    backgroundColor: colors.surface,
     borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
-    paddingHorizontal: 20,
-    paddingVertical: 14,
+    borderTopColor: colors.border,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
 
   checkoutLabel: {
-    fontSize: 14,
-    color: '#6b7280',
+    ...typography.caption,
+    color: colors.muted,
   },
 
   checkoutPrice: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#111827',
+    ...typography.h2,
+    color: colors.text,
   },
 
   checkoutBtn: {
-    backgroundColor: '#4f46e5',
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    borderRadius: 14,
+    backgroundColor: colors.primary,
+    paddingVertical: 12,
+    paddingHorizontal: spacing.md,
+    borderRadius: radii.md,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: spacing.sm,
   },
 
   checkoutText: {
-    color: '#fff',
-    fontSize: 16,
+    color: colors.surface,
+    fontSize: 15,
     fontWeight: '700',
   },
 });

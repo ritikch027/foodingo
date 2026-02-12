@@ -1,10 +1,4 @@
-import {
-  ActivityIndicator,
-  View,
-  StatusBar,
-  StyleSheet,
-  Text,
-} from 'react-native';
+import { ActivityIndicator, StatusBar, StyleSheet, Text } from 'react-native';
 import { useEffect, useState, useContext } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationContainer } from '@react-navigation/native';
@@ -24,6 +18,7 @@ import Checkout from './src/screens/Checkout';
 import MyOrders from './src/screens/MyOrders';
 import OrderSuccess from './src/screens/OrderSuccess';
 import RestaurantOrders from './src/screens/RestaurantOrders';
+import { colors, spacing, typography } from './src/theme';
 
 const Stack = createNativeStackNavigator();
 
@@ -58,7 +53,7 @@ const AppNavigation = () => {
   if (booting || isLoggedIn === null) {
     return (
       <Animated.View entering={FadeIn} style={styles.loader}>
-        <ActivityIndicator size="large" color="#4f46e5" />
+        <ActivityIndicator size="large" color={colors.primary} />
         <Text style={styles.loaderText}>Starting Foodingo...</Text>
       </Animated.View>
     );
@@ -66,7 +61,7 @@ const AppNavigation = () => {
 
   return (
     <NavigationContainer>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+      <StatusBar barStyle="dark-content" backgroundColor={colors.surface} />
 
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {!isLoggedIn ? (
@@ -117,15 +112,14 @@ export default App;
 const styles = StyleSheet.create({
   loader: {
     flex: 1,
-    backgroundColor: '#f9fafb',
+    backgroundColor: colors.bg,
     justifyContent: 'center',
     alignItems: 'center',
   },
 
   loaderText: {
-    marginTop: 14,
-    fontSize: 16,
-    color: '#6b7280',
-    fontWeight: '500',
+    marginTop: spacing.sm,
+    ...typography.sub,
+    color: colors.muted,
   },
 });

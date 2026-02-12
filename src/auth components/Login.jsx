@@ -7,6 +7,7 @@ import { useContext } from 'react';
 import { UserContext } from '../utils/userContext';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import Icon from 'react-native-vector-icons/Feather';
+import { colors, spacing, typography, shadows, motion } from '../theme';
 
 const Login = ({ navigation }) => {
   const { setIsLoggedIn, getCartData } = useContext(UserContext);
@@ -66,9 +67,12 @@ const Login = ({ navigation }) => {
   return (
     <View style={styles.container}>
       {/* Header */}
-      <Animated.View entering={FadeInDown} style={styles.header}>
+      <Animated.View
+        entering={FadeInDown.duration(motion.fadeDuration)}
+        style={styles.header}
+      >
         <View style={styles.logoWrap}>
-          <Icon name="shopping-bag" size={36} color="#4f46e5" />
+          <Icon name="shopping-bag" size={32} color={colors.primary} />
         </View>
         <Text style={styles.title}>Welcome Back</Text>
         <Text style={styles.subtitle}>
@@ -102,48 +106,47 @@ export default Login;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
+    backgroundColor: colors.bg,
   },
 
   header: {
     alignItems: 'center',
-    paddingVertical: 40,
+    paddingVertical: spacing.xl,
   },
 
   logoWrap: {
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: '#eef2ff',
+    backgroundColor: colors.tintAlt,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
-    elevation: 3,
+    marginBottom: spacing.md,
+    ...shadows.soft,
   },
 
   title: {
-    fontSize: 26,
-    fontWeight: '800',
-    color: '#111827',
-    marginBottom: 6,
+    ...typography.h1,
+    color: colors.text,
+    marginBottom: spacing.xs,
   },
 
   subtitle: {
-    fontSize: 14,
-    color: '#6b7280',
+    ...typography.sub,
+    color: colors.muted,
     textAlign: 'center',
-    paddingHorizontal: 40,
+    paddingHorizontal: spacing.xl,
   },
 
   footerText: {
-    fontSize: 14,
-    marginTop: 20,
-    color: '#6b7280',
+    ...typography.sub,
+    marginTop: spacing.lg,
+    color: colors.muted,
     textAlign: 'center',
   },
 
   footerLink: {
-    color: '#4f46e5',
+    color: colors.primary,
     fontWeight: '700',
   },
 });

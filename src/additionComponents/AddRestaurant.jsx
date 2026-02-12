@@ -7,6 +7,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import Icon from 'react-native-vector-icons/Feather';
 import { UserContext } from '../utils/userContext';
+import { colors, radii, spacing, typography, shadows, motion } from '../theme';
 
 const AddRestaurant = ({ navigation }) => {
   const { user } = useContext(UserContext);
@@ -82,11 +83,7 @@ const AddRestaurant = ({ navigation }) => {
         owner: user._id,
       };
 
-      const res = await api.post('/restaurants', restaurantData, {
-        headers: {
-          authorization: token,
-        },
-      });
+      const res = await api.post('/restaurants', restaurantData);
 
       if (res.data.success) {
         Toast.show({
@@ -119,9 +116,12 @@ const AddRestaurant = ({ navigation }) => {
   return (
     <View style={styles.container}>
       {/* Header */}
-      <Animated.View entering={FadeInDown} style={styles.header}>
+      <Animated.View
+        entering={FadeInDown.duration(motion.fadeDuration)}
+        style={styles.header}
+      >
         <View style={styles.iconWrap}>
-          <Icon name="home" size={32} color="#4f46e5" />
+          <Icon name="home" size={30} color={colors.primary} />
         </View>
         <Text style={styles.title}>Add Your Restaurant</Text>
         <Text style={styles.subtitle}>
@@ -148,36 +148,35 @@ export default AddRestaurant;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
+    backgroundColor: colors.bg,
   },
 
   header: {
     alignItems: 'center',
-    paddingVertical: 40,
+    paddingVertical: spacing.xl,
   },
 
   iconWrap: {
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: '#eef2ff',
+    backgroundColor: colors.tintAlt,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
-    elevation: 3,
+    marginBottom: spacing.md,
+    ...shadows.soft,
   },
 
   title: {
-    fontSize: 26,
-    fontWeight: '800',
-    color: '#111827',
-    marginBottom: 6,
+    ...typography.h1,
+    color: colors.text,
+    marginBottom: spacing.xs,
   },
 
   subtitle: {
-    fontSize: 14,
-    color: '#6b7280',
+    ...typography.sub,
+    color: colors.muted,
     textAlign: 'center',
-    paddingHorizontal: 40,
+    paddingHorizontal: spacing.xl,
   },
 });

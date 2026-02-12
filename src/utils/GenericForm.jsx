@@ -17,6 +17,7 @@ import Icon from 'react-native-vector-icons/Feather';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import { Picker } from '@react-native-picker/picker';
+import { colors, radii, spacing, typography, shadows, motion } from '../theme';
 
 import ImagePickerComponent from './ImagePicker';
 
@@ -83,7 +84,9 @@ const GenericForm = ({
       return (
         <AnimatedView
           key={field.name}
-          entering={FadeInDown.delay(index * 80)}
+          entering={FadeInDown.duration(motion.fadeDuration).delay(
+            index * motion.fadeDelay,
+          )}
           layout={Layout.springify()}
           style={styles.fieldCard}
         >
@@ -110,7 +113,9 @@ const GenericForm = ({
       return (
         <AnimatedView
           key={field.name}
-          entering={FadeInDown.delay(index * 80)}
+          entering={FadeInDown.duration(motion.fadeDuration).delay(
+            index * motion.fadeDelay,
+          )}
           layout={Layout.springify()}
           style={styles.fieldCard}
         >
@@ -132,14 +137,16 @@ const GenericForm = ({
     return (
       <AnimatedView
         key={field.name}
-        entering={FadeInDown.delay(index * 80)}
+        entering={FadeInDown.duration(motion.fadeDuration).delay(
+          index * motion.fadeDelay,
+        )}
         layout={Layout.springify()}
         style={styles.fieldCard}
       >
         <Text style={styles.label}>{field.label}</Text>
 
         <View style={styles.inputRow}>
-          <Icon name="edit-3" size={18} color="#6b7280" />
+          <Icon name="edit-3" size={18} color={colors.muted} />
           <TextInput
             placeholder={field.placeholder || field.label}
             value={formData[field.name]}
@@ -147,7 +154,7 @@ const GenericForm = ({
             secureTextEntry={field.type === 'password'}
             keyboardType={field.keyboardType || 'default'}
             style={styles.input}
-            placeholderTextColor="#9ca3af"
+            placeholderTextColor={colors.muted}
           />
         </View>
 
@@ -180,7 +187,7 @@ const GenericForm = ({
             disabled={isSubmitting}
             style={({ pressed }) => [
               styles.submitBtn,
-              pressed && { opacity: 0.8 },
+              pressed && { opacity: 0.85 },
             ]}
           >
             <Text style={styles.submitText}>
@@ -202,82 +209,79 @@ export default GenericForm;
 
 const styles = StyleSheet.create({
   container: {
-    padding: 20,
-    backgroundColor: '#f9fafb',
+    padding: spacing.lg,
+    backgroundColor: colors.bg,
     flexGrow: 1,
   },
 
   heading: {
-    fontSize: 26,
-    fontWeight: '800',
-    marginBottom: 20,
-    color: '#111827',
+    ...typography.h1,
+    marginBottom: spacing.lg,
+    color: colors.text,
   },
 
   fieldCard: {
-    backgroundColor: '#fff',
-    padding: 16,
-    borderRadius: 16,
-    marginBottom: 14,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
+    backgroundColor: colors.surface,
+    padding: spacing.md,
+    borderRadius: radii.lg,
+    marginBottom: spacing.sm,
+    ...shadows.soft,
   },
 
   label: {
-    fontSize: 14,
-    fontWeight: '600',
-    marginBottom: 6,
-    color: '#374151',
+    ...typography.sub,
+    marginBottom: spacing.xs,
+    color: colors.text,
   },
 
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: spacing.sm,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 12,
-    paddingHorizontal: 12,
+    borderColor: colors.border,
+    borderRadius: radii.md,
+    paddingHorizontal: spacing.sm,
     paddingVertical: 10,
+    backgroundColor: colors.surface,
   },
 
   input: {
     flex: 1,
-    fontSize: 16,
-    color: '#111827',
+    ...typography.body,
+    color: colors.text,
   },
 
   inputBox: {
     borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 12,
+    borderColor: colors.border,
+    borderRadius: radii.md,
     overflow: 'hidden',
+    backgroundColor: colors.surface,
   },
 
   error: {
-    marginTop: 6,
-    color: '#dc2626',
+    marginTop: spacing.xs,
+    color: colors.error,
     fontSize: 12,
   },
 
   submitBtn: {
-    marginTop: 30,
-    backgroundColor: '#4f46e5',
-    paddingVertical: 16,
-    borderRadius: 16,
+    marginTop: spacing.lg,
+    backgroundColor: colors.primary,
+    paddingVertical: 14,
+    borderRadius: radii.lg,
     alignItems: 'center',
   },
 
   submitText: {
-    color: '#fff',
+    color: colors.surface,
     fontSize: 17,
     fontWeight: '700',
   },
 
   footer: {
-    marginTop: 18,
+    marginTop: spacing.md,
     alignItems: 'center',
   },
 });

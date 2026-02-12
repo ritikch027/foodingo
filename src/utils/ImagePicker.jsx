@@ -14,6 +14,7 @@ import ImagePicker from 'react-native-image-crop-picker';
 import axios from 'axios';
 import Toast from 'react-native-toast-message';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { colors, radii, spacing, typography, shadows } from '../theme';
 
 const CLOUDINARY_CONFIG = {
   uploadPreset: 'unsigned_preset',
@@ -143,7 +144,7 @@ const ImagePickerComponent = ({
     <View style={styles.container}>
       <Text style={styles.label}>
         {label}
-        {required && <Text style={{ color: '#ef4444' }}> *</Text>}
+        {required && <Text style={styles.required}> *</Text>}
       </Text>
 
       <Pressable
@@ -153,12 +154,16 @@ const ImagePickerComponent = ({
       >
         {isUploading ? (
           <View style={styles.uploadingContainer}>
-            <ActivityIndicator size="small" color="#4f46e5" />
+            <ActivityIndicator size="small" color={colors.primary} />
             <Text style={styles.uploadingText}>Uploading...</Text>
           </View>
         ) : (
           <View style={styles.btnRow}>
-            <Ionicons name="cloud-upload-outline" size={20} color="#4f46e5" />
+            <Ionicons
+              name="cloud-upload-outline"
+              size={20}
+              color={colors.primary}
+            />
             <Text style={styles.buttonText}>
               {selectedImage ? 'Change Image' : 'Select Image'}
             </Text>
@@ -174,7 +179,7 @@ const ImagePickerComponent = ({
           />
 
           <Pressable style={styles.removeBtn} onPress={handleRemoveImage}>
-            <Ionicons name="close" size={16} color="#fff" />
+            <Ionicons name="close" size={16} color={colors.surface} />
           </Pressable>
         </View>
       )}
@@ -189,23 +194,26 @@ export default ImagePickerComponent;
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    marginBottom: 20,
+    marginBottom: spacing.lg,
   },
 
   label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#374151',
-    marginBottom: 8,
+    ...typography.sub,
+    color: colors.text,
+    marginBottom: spacing.xs,
+  },
+
+  required: {
+    color: colors.error,
   },
 
   imageBtn: {
     width: '100%',
     height: 52,
-    backgroundColor: '#eef2ff',
+    backgroundColor: colors.tintAlt,
     borderWidth: 1,
-    borderColor: '#c7d2fe',
-    borderRadius: 14,
+    borderColor: colors.primary,
+    borderRadius: radii.md,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -213,11 +221,11 @@ const styles = StyleSheet.create({
   btnRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: spacing.sm,
   },
 
   buttonText: {
-    color: '#4f46e5',
+    color: colors.primary,
     fontSize: 16,
     fontWeight: '700',
   },
@@ -225,28 +233,28 @@ const styles = StyleSheet.create({
   uploadingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: spacing.sm,
   },
 
   uploadingText: {
-    color: '#4f46e5',
+    color: colors.primary,
     fontSize: 15,
     fontWeight: '600',
   },
 
   imageContainer: {
     position: 'relative',
-    marginTop: 14,
+    marginTop: spacing.sm,
     alignSelf: 'flex-start',
   },
 
   preview: {
     width: 120,
     height: 120,
-    borderRadius: 16,
+    borderRadius: radii.md,
     borderWidth: 2,
-    borderColor: '#c7d2fe',
-    backgroundColor: '#f9fafb',
+    borderColor: colors.primary,
+    backgroundColor: colors.bg,
   },
 
   removeBtn: {
@@ -256,8 +264,9 @@ const styles = StyleSheet.create({
     width: 26,
     height: 26,
     borderRadius: 13,
-    backgroundColor: '#ef4444',
+    backgroundColor: colors.error,
     justifyContent: 'center',
     alignItems: 'center',
+    ...shadows.soft,
   },
 });

@@ -15,19 +15,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { UserContext } from '../utils/userContext';
 import api from '../utils/api';
 import Toast from 'react-native-toast-message';
-
-/**
- * Enhanced Checkout Screen
- *
- * Features:
- * - Delivery address input with icon
- * - Order summary card
- * - Item breakdown
- * - Delivery fee calculation
- * - Total with taxes
- * - Place order button
- * - Loading state
- */
+import { colors, radii, spacing, typography, shadows, motion } from '../theme';
 
 const Checkout = ({ navigation }) => {
   const insets = useSafeAreaInsets();
@@ -43,7 +31,7 @@ const Checkout = ({ navigation }) => {
     0,
   );
   const deliveryFee = 40;
-  const tax = subtotal * 0.05; // 5% tax
+  const tax = subtotal * 0.05;
   const total = subtotal + deliveryFee + tax;
 
   const handlePlaceOrder = async () => {
@@ -94,7 +82,7 @@ const Checkout = ({ navigation }) => {
           navigation.reset({
             index: 0,
             routes: [
-              { name: 'Home' },
+              { name: 'HomeWithDrawer' },
               {
                 name: 'OrderSuccess',
                 params: { orderId: res.data.orderId },
@@ -124,7 +112,7 @@ const Checkout = ({ navigation }) => {
           onPress={() => navigation.goBack()}
           style={styles.backButton}
         >
-          <Icon name="arrow-left" size={24} color="#111827" />
+          <Icon name="arrow-left" size={22} color={colors.text} />
         </Pressable>
         <Text style={styles.headerTitle}>Checkout</Text>
         <View style={styles.placeholder} />
@@ -139,17 +127,20 @@ const Checkout = ({ navigation }) => {
         ]}
       >
         {/* Delivery Details */}
-        <Animated.View entering={FadeInDown.delay(100)} style={styles.section}>
+        <Animated.View
+          entering={FadeInDown.duration(motion.fadeDuration)}
+          style={styles.section}
+        >
           <Text style={styles.sectionTitle}>Delivery Details</Text>
 
           <View style={styles.inputCard}>
-            <Icon name="map-pin" size={18} color="#6b7280" />
+            <Icon name="map-pin" size={18} color={colors.muted} />
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>Delivery Address</Text>
-              <input
-                style={styles.input}
+              <TextInput
+                style={[styles.input, styles.textArea]}
                 placeholder="Enter your full address"
-                placeholderTextColor="#9ca3af"
+                placeholderTextColor={colors.muted}
                 value={address}
                 onChangeText={setAddress}
                 multiline
@@ -160,13 +151,13 @@ const Checkout = ({ navigation }) => {
           </View>
 
           <View style={styles.inputCard}>
-            <Icon name="phone" size={18} color="#6b7280" />
+            <Icon name="phone" size={18} color={colors.muted} />
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>Phone Number</Text>
               <TextInput
                 style={styles.input}
                 placeholder="Enter your phone number"
-                placeholderTextColor="#9ca3af"
+                placeholderTextColor={colors.muted}
                 value={phone}
                 onChangeText={setPhone}
                 keyboardType="phone-pad"
@@ -176,11 +167,14 @@ const Checkout = ({ navigation }) => {
         </Animated.View>
 
         {/* Order Items */}
-        <Animated.View entering={FadeInDown.delay(200)} style={styles.section}>
+        <Animated.View
+          entering={FadeInDown.duration(motion.fadeDuration).delay(60)}
+          style={styles.section}
+        >
           <Text style={styles.sectionTitle}>Order Items</Text>
 
           <View style={styles.card}>
-            {mappedItems.map((item, index) => (
+            {mappedItems.map(item => (
               <View key={item._id} style={styles.itemRow}>
                 <View style={styles.itemInfo}>
                   <Text style={styles.itemName} numberOfLines={1}>
@@ -189,7 +183,8 @@ const Checkout = ({ navigation }) => {
                   <Text style={styles.itemQuantity}>Qty: {item.quantity}</Text>
                 </View>
                 <Text style={styles.itemPrice}>
-                  ₹{item.offerPrice * item.quantity}
+                  {'\u20B9'}
+                  {item.offerPrice * item.quantity}
                 </Text>
               </View>
             ))}
@@ -197,30 +192,45 @@ const Checkout = ({ navigation }) => {
         </Animated.View>
 
         {/* Order Summary */}
-        <Animated.View entering={FadeInDown.delay(300)} style={styles.section}>
+        <Animated.View
+          entering={FadeInDown.duration(motion.fadeDuration).delay(120)}
+          style={styles.section}
+        >
           <Text style={styles.sectionTitle}>Order Summary</Text>
 
           <View style={styles.card}>
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Subtotal</Text>
-              <Text style={styles.summaryValue}>₹{subtotal.toFixed(2)}</Text>
+              <Text style={styles.summaryValue}>
+                {'\u20B9'}
+                {subtotal.toFixed(2)}
+              </Text>
             </View>
 
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Delivery Fee</Text>
-              <Text style={styles.summaryValue}>₹{deliveryFee.toFixed(2)}</Text>
+              <Text style={styles.summaryValue}>
+                {'\u20B9'}
+                {deliveryFee.toFixed(2)}
+              </Text>
             </View>
 
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Tax (5%)</Text>
-              <Text style={styles.summaryValue}>₹{tax.toFixed(2)}</Text>
+              <Text style={styles.summaryValue}>
+                {'\u20B9'}
+                {tax.toFixed(2)}
+              </Text>
             </View>
 
             <View style={styles.divider} />
 
             <View style={styles.summaryRow}>
               <Text style={styles.totalLabel}>Total</Text>
-              <Text style={styles.totalValue}>₹{total.toFixed(2)}</Text>
+              <Text style={styles.totalValue}>
+                {'\u20B9'}
+                {total.toFixed(2)}
+              </Text>
             </View>
           </View>
         </Animated.View>
@@ -230,13 +240,16 @@ const Checkout = ({ navigation }) => {
       <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 10 }]}>
         <View style={styles.totalContainer}>
           <Text style={styles.bottomTotalLabel}>Total</Text>
-          <Text style={styles.bottomTotalValue}>₹{total.toFixed(2)}</Text>
+          <Text style={styles.bottomTotalValue}>
+            {'\u20B9'}
+            {total.toFixed(2)}
+          </Text>
         </View>
 
         <Pressable
           style={({ pressed }) => [
             styles.placeOrderButton,
-            pressed && { opacity: 0.8 },
+            pressed && { opacity: 0.85 },
             loading && { opacity: 0.6 },
           ]}
           onPress={handlePlaceOrder}
@@ -245,7 +258,7 @@ const Checkout = ({ navigation }) => {
           <Text style={styles.placeOrderText}>
             {loading ? 'Placing Order...' : 'Place Order'}
           </Text>
-          <Icon name="check-circle" size={20} color="#fff" />
+          <Icon name="check-circle" size={18} color={colors.surface} />
         </Pressable>
       </View>
 
@@ -261,7 +274,7 @@ export default Checkout;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
+    backgroundColor: colors.bg,
   },
 
   /* Header */
@@ -269,28 +282,27 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: '#fff',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    backgroundColor: colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
+    borderBottomColor: colors.border,
   },
 
   backButton: {
-    width: 40,
-    height: 40,
+    width: 36,
+    height: 36,
     alignItems: 'center',
     justifyContent: 'center',
   },
 
   headerTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#111827',
+    ...typography.h3,
+    color: colors.text,
   },
 
   placeholder: {
-    width: 40,
+    width: 36,
   },
 
   /* Content */
@@ -299,54 +311,57 @@ const styles = StyleSheet.create({
   },
 
   scrollContent: {
-    padding: 20,
+    padding: spacing.lg,
   },
 
   section: {
-    marginBottom: 24,
+    marginBottom: spacing.lg,
   },
 
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#111827',
-    marginBottom: 12,
+    ...typography.h3,
+    color: colors.text,
+    marginBottom: spacing.sm,
   },
 
   /* Input Cards */
   inputCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 12,
+    backgroundColor: colors.surface,
+    borderRadius: radii.md,
+    padding: spacing.md,
+    marginBottom: spacing.sm,
     flexDirection: 'row',
     alignItems: 'flex-start',
-    elevation: 2,
+    ...shadows.soft,
   },
 
   inputContainer: {
     flex: 1,
-    marginLeft: 12,
+    marginLeft: spacing.sm,
   },
 
   inputLabel: {
-    fontSize: 12,
-    color: '#6b7280',
-    marginBottom: 4,
+    ...typography.caption,
+    color: colors.muted,
+    marginBottom: spacing.xs,
   },
 
   input: {
-    fontSize: 16,
-    color: '#111827',
+    ...typography.body,
+    color: colors.text,
     paddingVertical: 0,
+  },
+
+  textArea: {
+    minHeight: 64,
   },
 
   /* Cards */
   card: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 16,
-    elevation: 2,
+    backgroundColor: colors.surface,
+    borderRadius: radii.lg,
+    padding: spacing.md,
+    ...shadows.soft,
   },
 
   /* Item Rows */
@@ -354,77 +369,72 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingVertical: spacing.xs,
     borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
+    borderBottomColor: colors.border,
   },
 
   itemInfo: {
     flex: 1,
-    marginRight: 12,
+    marginRight: spacing.sm,
   },
 
   itemName: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#111827',
+    ...typography.sub,
+    color: colors.text,
     marginBottom: 2,
   },
 
   itemQuantity: {
-    fontSize: 12,
-    color: '#6b7280',
+    ...typography.caption,
+    color: colors.muted,
   },
 
   itemPrice: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#111827',
+    ...typography.sub,
+    color: colors.text,
   },
 
   /* Summary */
   summaryRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 8,
+    paddingVertical: spacing.xs,
   },
 
   summaryLabel: {
-    fontSize: 14,
-    color: '#6b7280',
+    ...typography.sub,
+    color: colors.muted,
   },
 
   summaryValue: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#111827',
+    ...typography.sub,
+    color: colors.text,
   },
 
   divider: {
     height: 1,
-    backgroundColor: '#e5e7eb',
-    marginVertical: 8,
+    backgroundColor: colors.border,
+    marginVertical: spacing.xs,
   },
 
   totalLabel: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#111827',
+    ...typography.h3,
+    color: colors.text,
   },
 
   totalValue: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: '#4f46e5',
+    ...typography.h3,
+    color: colors.primaryDark,
   },
 
   /* Bottom Bar */
   bottomBar: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.surface,
     borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
-    paddingHorizontal: 20,
-    paddingTop: 14,
+    borderTopColor: colors.border,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.sm,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -433,28 +443,27 @@ const styles = StyleSheet.create({
   totalContainer: {},
 
   bottomTotalLabel: {
-    fontSize: 14,
-    color: '#6b7280',
+    ...typography.caption,
+    color: colors.muted,
   },
 
   bottomTotalValue: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#111827',
+    ...typography.h2,
+    color: colors.text,
   },
 
   placeOrderButton: {
-    backgroundColor: '#4f46e5',
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: 14,
+    backgroundColor: colors.primary,
+    paddingVertical: 12,
+    paddingHorizontal: spacing.lg,
+    borderRadius: radii.md,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: spacing.sm,
   },
 
   placeOrderText: {
-    color: '#fff',
+    color: colors.surface,
     fontSize: 16,
     fontWeight: '700',
   },

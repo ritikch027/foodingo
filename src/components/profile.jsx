@@ -15,6 +15,7 @@ import Icon from 'react-native-vector-icons/Feather';
 import api from '../utils/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
+import { colors, radii, spacing, typography, shadows } from '../theme';
 
 const Profile = ({ navigation }) => {
   const { user, setIsLoggedIn } = useContext(UserContext);
@@ -23,7 +24,7 @@ const Profile = ({ navigation }) => {
     return (
       <View style={styles.loadingContainer}>
         <View style={styles.loadingCard}>
-          <Icon name="user" size={42} color="#9ca3af" />
+          <Icon name="user" size={36} color={colors.muted} />
           <Text style={styles.loadingText}>Loading profile...</Text>
         </View>
       </View>
@@ -47,8 +48,6 @@ const Profile = ({ navigation }) => {
   };
 
   const handleDeleteRestaurant = async () => {
-    const token = await AsyncStorage.getItem('token');
-
     Alert.alert(
       'Delete Restaurant',
       'Are you sure you want to delete your restaurant?',
@@ -59,9 +58,7 @@ const Profile = ({ navigation }) => {
           style: 'destructive',
           onPress: async () => {
             try {
-              await api.delete(`/restaurant/delete/${user.restaurant}`, {
-                headers: { Authorization: token },
-              });
+              await api.delete(`/restaurant/delete/${user.restaurant}`);
 
               Toast.show({
                 type: 'success',
@@ -92,13 +89,17 @@ const Profile = ({ navigation }) => {
     {
       title: 'Settings',
       icon: 'settings',
-      onPress: () =>
-        Alert.alert('Coming Soon', 'Settings feature coming soon!'),
+      onPress: () => Alert.alert('Coming Soon', 'Settings feature coming soon!'),
     },
     user.role === 'customer' && {
       title: 'Register your restaurant',
       icon: 'plus',
       onPress: () => navigation.navigate('AddRestaurant'),
+    },
+    (user.role === 'owner' || user.role === 'admin') && {
+      title: 'Delete restaurant',
+      icon: 'trash-2',
+      onPress: handleDeleteRestaurant,
     },
   ].filter(Boolean);
 
@@ -135,7 +136,7 @@ const Profile = ({ navigation }) => {
           <Icon
             name={user.role === 'owner' ? 'briefcase' : 'user'}
             size={12}
-            color="#fff"
+            color={colors.surface}
           />
           <Text style={styles.roleText}>
             {user.role === 'admin'
@@ -149,14 +150,14 @@ const Profile = ({ navigation }) => {
         {/* Info Card */}
         <View style={styles.infoCard}>
           <View style={styles.infoRow}>
-            <Icon name="mail" size={18} color="#4f46e5" />
+            <Icon name="mail" size={18} color={colors.primary} />
             <Text style={styles.infoText}>{user.email}</Text>
           </View>
 
           <View style={styles.divider} />
 
           <View style={styles.infoRow}>
-            <Icon name="phone" size={18} color="#4f46e5" />
+            <Icon name="phone" size={18} color={colors.primary} />
             <Text style={styles.infoText}>+91 {user.phone}</Text>
           </View>
         </View>
@@ -169,14 +170,14 @@ const Profile = ({ navigation }) => {
               onPress={option.onPress}
               style={({ pressed }) => [
                 styles.menuItem,
-                pressed && { opacity: 0.8 },
+                pressed && { opacity: 0.85 },
               ]}
             >
               <View style={styles.menuLeft}>
-                <Icon name={option.icon} size={20} color="#4f46e5" />
+                <Icon name={option.icon} size={20} color={colors.primary} />
                 <Text style={styles.menuText}>{option.title}</Text>
               </View>
-              <Icon name="chevron-right" size={20} color="#9ca3af" />
+              <Icon name="chevron-right" size={20} color={colors.muted} />
             </Pressable>
           ))}
         </View>
@@ -186,10 +187,10 @@ const Profile = ({ navigation }) => {
           onPress={handleLogout}
           style={({ pressed }) => [
             styles.logoutBtn,
-            pressed && { opacity: 0.8 },
+            pressed && { opacity: 0.85 },
           ]}
         >
-          <Icon name="log-out" size={20} color="#ef4444" />
+          <Icon name="log-out" size={20} color={colors.error} />
           <Text style={styles.logoutText}>Logout</Text>
         </Pressable>
       </ScrollView>
@@ -204,63 +205,61 @@ export default Profile;
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#f9fafb',
+    backgroundColor: colors.bg,
   },
 
   container: {
     alignItems: 'center',
-    paddingBottom: 40,
+    paddingBottom: spacing.xl,
   },
 
   header: {
     width: '100%',
-    paddingVertical: 26,
+    paddingVertical: spacing.xl,
     alignItems: 'center',
-    backgroundColor: '#eef2ff',
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
+    backgroundColor: colors.tintAlt,
+    borderBottomLeftRadius: radii.xl,
+    borderBottomRightRadius: radii.xl,
   },
 
   headerTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#111827',
+    ...typography.h2,
+    color: colors.text,
   },
 
   avatarContainer: {
     marginTop: -40,
-    backgroundColor: '#fff',
+    backgroundColor: colors.surface,
     borderRadius: 60,
     padding: 4,
-    elevation: 4,
+    ...shadows.card,
   },
 
   avatar: {
     width: 110,
     height: 110,
     borderRadius: 55,
-    backgroundColor: '#e5e7eb',
+    backgroundColor: colors.border,
   },
 
   name: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#111827',
-    marginTop: 12,
+    ...typography.h1,
+    color: colors.text,
+    marginTop: spacing.sm,
   },
 
   roleBadge: {
-    marginTop: 6,
+    marginTop: spacing.xs,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#4f46e5',
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 20,
+    backgroundColor: colors.primary,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: 999,
   },
 
   roleText: {
-    color: '#fff',
+    color: colors.surface,
     fontSize: 12,
     fontWeight: '700',
     marginLeft: 6,
@@ -268,46 +267,45 @@ const styles = StyleSheet.create({
 
   infoCard: {
     width: '90%',
-    marginTop: 26,
-    backgroundColor: '#fff',
-    borderRadius: 18,
-    padding: 20,
-    elevation: 2,
+    marginTop: spacing.lg,
+    backgroundColor: colors.surface,
+    borderRadius: radii.lg,
+    padding: spacing.lg,
+    ...shadows.soft,
   },
 
   infoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: spacing.sm,
   },
 
   infoText: {
-    fontSize: 16,
-    color: '#111827',
-    fontWeight: '600',
+    ...typography.body,
+    color: colors.text,
   },
 
   divider: {
     height: 1,
-    backgroundColor: '#e5e7eb',
-    marginVertical: 16,
+    backgroundColor: colors.border,
+    marginVertical: spacing.md,
   },
 
   menuSection: {
     width: '90%',
-    marginTop: 30,
+    marginTop: spacing.lg,
   },
 
   menuItem: {
-    backgroundColor: '#fff',
-    paddingVertical: 16,
-    paddingHorizontal: 18,
-    borderRadius: 16,
+    backgroundColor: colors.surface,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    borderRadius: radii.lg,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 12,
-    elevation: 2,
+    marginBottom: spacing.sm,
+    ...shadows.soft,
   },
 
   menuLeft: {
@@ -316,56 +314,26 @@ const styles = StyleSheet.create({
   },
 
   menuText: {
-    fontSize: 16,
-    color: '#111827',
-    marginLeft: 12,
-    fontWeight: '600',
-  },
-
-  ownerSection: {
-    width: '90%',
-    marginTop: 30,
-  },
-
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: '#111827',
-    marginBottom: 16,
-  },
-
-  primaryBtn: {
-    backgroundColor: '#4f46e5',
-    paddingVertical: 16,
-    borderRadius: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 12,
-    gap: 8,
-  },
-
-  primaryText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '700',
+    ...typography.sub,
+    color: colors.text,
+    marginLeft: spacing.sm,
   },
 
   logoutBtn: {
-    marginTop: 30,
-    backgroundColor: '#fef2f2',
-    paddingVertical: 14,
-    paddingHorizontal: 40,
-    borderRadius: 18,
+    marginTop: spacing.lg,
+    backgroundColor: '#FEF2F2',
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.xl,
+    borderRadius: radii.lg,
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#fecaca',
-    gap: 8,
+    borderColor: '#FECACA',
+    gap: spacing.sm,
   },
 
   logoutText: {
-    color: '#ef4444',
+    color: colors.error,
     fontSize: 16,
     fontWeight: '700',
   },
@@ -374,20 +342,20 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f9fafb',
+    backgroundColor: colors.bg,
   },
 
   loadingCard: {
-    backgroundColor: '#fff',
-    padding: 40,
-    borderRadius: 20,
+    backgroundColor: colors.surface,
+    padding: spacing.xl,
+    borderRadius: radii.lg,
     alignItems: 'center',
-    elevation: 2,
+    ...shadows.soft,
   },
 
   loadingText: {
-    fontSize: 18,
-    color: '#6b7280',
-    marginTop: 15,
+    ...typography.sub,
+    color: colors.muted,
+    marginTop: spacing.sm,
   },
 });

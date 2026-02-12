@@ -5,7 +5,6 @@ import {
   TextInput,
   FlatList,
   Image,
-  Dimensions,
   Pressable,
 } from 'react-native';
 
@@ -19,12 +18,12 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 // import RenderOffer from './components/RenderOffer';
 import { UserContext } from '../utils/userContext';
-import Loader from '../utils/Loader';
 import HomeSkeleton from '../utils/HomeSkeleton';
 
 import Animated, { FadeInDown, Layout } from 'react-native-reanimated';
+import { colors, radii, spacing, typography, shadows, motion } from '../theme';
 
-const screenWidth = Dimensions.get('window').width;
+const FILTERS = ['Fast Delivery', 'Top Rated', 'Nearby'];
 
 const Home = ({ navigation }) => {
   const insets = useSafeAreaInsets();
@@ -36,34 +35,14 @@ const Home = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [offers, setOffers] = useState([]);
   const [restaurants, setRestaurants] = useState([]);
-
-  /* ---------------- CACHE ---------------- */
-
-  // const cacheSet = async (key, data) => {
-  //   try {
-  //     await AsyncStorage.setItem(key, JSON.stringify(data));
-  //   } catch (err) {
-  //     console.log('Cache write error:', err);
-  //   }
-  // };
-
-  // const cacheGet = async key => {
-  //   try {
-  //     const value = await AsyncStorage.getItem(key);
-  //     return value ? JSON.parse(value) : null;
-  //   } catch {
-  //     return null;
-  //   }
-  // };
+  const [activeFilter, setActiveFilter] = useState(FILTERS[0]);
 
   /* ---------------- API ---------------- */
 
   const fetchOffers = async () => {
     try {
       const res = await api.get('/offers');
-      // console.log(res.data);
       setOffers(res.data);
-      // cacheSet('offers', res.data);
     } catch (err) {
       console.log('Offers API error:', err.message);
     }
@@ -72,8 +51,7 @@ const Home = ({ navigation }) => {
   const fetchRestaurants = async () => {
     try {
       const res = await api.get('/restaurants');
-      setRestaurants(res.data);
-      // cacheSet('restaurants', res.data);
+      setRestaurants(res.data.restaurants);
     } catch (err) {
       console.log('Restaurants API error:', err.message);
     }
@@ -84,7 +62,7 @@ const Home = ({ navigation }) => {
       const token = await AsyncStorage.getItem('token');
       if (!token) return;
 
-      const res = await api.get('/userdata', { token });
+      const res = await api.get('/userdata');
       if (res.data?.user) {
         setUser(res.data?.user);
       }
@@ -99,14 +77,6 @@ const Home = ({ navigation }) => {
     let mounted = true;
     const boot = async () => {
       try {
-        // Load cached data instantly
-        // const cachedOffers = await cacheGet('offers');
-        // const cachedRestaurants = await cacheGet('restaurants');
-
-        // if (cachedOffers) setOffers(cachedOffers);
-        // if (cachedRestaurants) setRestaurants(cachedRestaurants);
-
-        // Fetch fresh data without crashing UI
         await fetchOffers();
         await fetchRestaurants();
         await fetchUser();
@@ -126,15 +96,15 @@ const Home = ({ navigation }) => {
   const HeaderTop = () => (
     <View>
       <View style={[styles.headerTopRow, { marginTop: insets.top }]}>
-        <Fontisto
+        <Pressable
           onPress={() => navigation.openDrawer()}
-          name="nav-icon-list-a"
-          size={20}
-          color="#111827"
-        />
+          style={({ pressed }) => [styles.iconBtn, pressed && { opacity: 0.7 }]}
+        >
+          <Fontisto name="nav-icon-list-a" size={18} color={colors.text} />
+        </Pressable>
 
         <Pressable onPress={() => navigation.navigate('Cart')}>
-          <Ionicons name="cart" size={28} color="#111827" />
+          <Ionicons name="cart" size={26} color={colors.text} />
           {totalItems > 0 && (
             <View style={styles.badge}>
               <Text style={styles.badgeText}>{totalItems}</Text>
@@ -143,36 +113,51 @@ const Home = ({ navigation }) => {
         </Pressable>
       </View>
 
-      <Text style={styles.greet}>Hi {user?.name || 'Guest'} 👋</Text>
-      <Text style={styles.heading}>Find your favourite food</Text>
+      <Text style={styles.greet}>
+        Hi {user?.name || 'Guest'} {'\uD83D\uDC4B'}
+      </Text>
+      <Text style={styles.heading}>Find your favorite food fast</Text>
 
       <View style={styles.searchBar}>
-        <Fontisto name="search" size={18} color="#6b7280" />
+        <Fontisto name="search" size={18} color={colors.muted} />
         <TextInput
           style={styles.input}
           placeholder="Search for restaurants or food"
-          placeholderTextColor="#9ca3af"
+          placeholderTextColor={colors.muted}
         />
       </View>
 
-      <Text style={styles.sectionTitle}>What's on your mind?</Text>
+      <View style={styles.chipsRow}>
+        {FILTERS.map(filter => {
+          const isActive = activeFilter === filter;
+          return (
+            <Pressable
+              key={filter}
+              onPress={() => setActiveFilter(filter)}
+              style={[styles.chip, isActive && styles.chipActive]}
+            >
+              <Text
+                style={[styles.chipText, isActive && styles.chipTextActive]}
+              >
+                {filter}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+
+      <Text style={styles.sectionTitle}>What are you craving?</Text>
     </View>
   );
 
   const HeaderSticky = () => <RenderCategories />;
 
-  // const HeaderBottom = () => (
-  //   <View>
-  //     <Text style={styles.sectionTitle}>Best Offers</Text>
-  //     <RenderOffer items={offers} />
-  //     <Text style={styles.sectionTitle}>Restaurants Near You</Text>
-  //   </View>
-  // );
-
   const renderItem = useCallback(
     ({ item, index }) => (
       <Animated.View
-        entering={FadeInDown.delay(index * 80)}
+        entering={FadeInDown.duration(motion.fadeDuration).delay(
+          index * motion.fadeDelay,
+        )}
         layout={Layout.springify()}
         style={styles.card}
       >
@@ -180,29 +165,41 @@ const Home = ({ navigation }) => {
           onPress={() =>
             navigation.navigate('RestaurantItems', { restaurant: item })
           }
+          style={({ pressed }) => [
+            styles.cardInner,
+            pressed && { opacity: 0.9 },
+          ]}
         >
           <Image source={{ uri: item.image.url }} style={styles.listImg} />
 
-          <View style={styles.deliveryBadge}>
-            <Ionicons name="time" size={14} color="#fff" />
-            <Text style={styles.deliveryText}>{item.deliveryTime} mins</Text>
-          </View>
-
-          <View style={styles.infoContainer}>
-            <Text style={styles.nameText}>{item.name}</Text>
-
-            <View style={styles.location}>
-              <Text style={styles.locationText}>{item.location}</Text>
+          <View style={styles.cardOverlay}>
+            <View style={styles.titleRow}>
+              <Text style={styles.nameText} numberOfLines={1}>
+                {item.name}
+              </Text>
               <View style={styles.ratingBadge}>
-                <FontAwesome name="star" size={12} color="#facc15" />
+                <FontAwesome name="star" size={12} color={colors.warning} />
                 <Text style={styles.ratingText}>{item.rating}</Text>
+              </View>
+            </View>
+
+            <Text style={styles.locationText} numberOfLines={1}>
+              {item.location}
+            </Text>
+
+            <View style={styles.metaRow}>
+              <View style={styles.deliveryBadge}>
+                <Ionicons name="time" size={12} color={colors.primaryDark} />
+                <Text style={styles.deliveryText}>
+                  {item.deliveryTime} mins
+                </Text>
               </View>
             </View>
           </View>
         </Pressable>
       </Animated.View>
     ),
-    [],
+    [activeFilter],
   );
 
   if (loading && restaurants.length === 0) return <HomeSkeleton />;
@@ -216,15 +213,18 @@ const Home = ({ navigation }) => {
             <HeaderTop />
             <HeaderSticky />
             <Text style={styles.sectionTitle}>
-              Grab from your favourite restaurant...
+              Grab from your favorite restaurant...
             </Text>
-            {/* <HeaderBottom /> */}
           </View>
         )}
         keyExtractor={item => item._id}
         showsVerticalScrollIndicator={false}
+        initialNumToRender={6}
+        maxToRenderPerBatch={8}
+        windowSize={7}
+        removeClippedSubviews
         contentContainerStyle={{
-          paddingBottom: insets.bottom + 40,
+          paddingBottom: insets.bottom + spacing.xl,
         }}
         renderItem={renderItem}
       />
@@ -237,44 +237,52 @@ export default Home;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
+    backgroundColor: colors.bg,
   },
 
   /* ---------- HEADER ---------- */
 
   headerTopRow: {
-    marginHorizontal: 24,
+    marginHorizontal: spacing.lg,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingTop: 8,
     paddingBottom: 12,
-    borderBottomColor: '#e5e7eb',
+    borderBottomColor: colors.border,
     borderBottomWidth: 1,
   },
 
+  iconBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...shadows.soft,
+  },
+
   greet: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#111827',
-    marginTop: 20,
-    marginLeft: 20,
+    ...typography.h1,
+    color: colors.text,
+    marginTop: spacing.lg,
+    marginLeft: spacing.lg,
   },
 
   heading: {
-    fontSize: 16,
-    color: '#6b7280',
-    marginTop: 6,
-    marginLeft: 20,
+    ...typography.sub,
+    color: colors.muted,
+    marginTop: spacing.xs,
+    marginLeft: spacing.lg,
   },
 
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#111827',
-    marginTop: 24,
-    marginLeft: 20,
-    marginBottom: 10,
+    ...typography.h3,
+    color: colors.text,
+    marginTop: spacing.lg,
+    marginLeft: spacing.lg,
+    marginBottom: spacing.sm,
   },
 
   /* ---------- SEARCH ---------- */
@@ -282,98 +290,136 @@ const styles = StyleSheet.create({
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 16,
-    marginHorizontal: 20,
-    borderRadius: 14,
-    paddingHorizontal: 16,
-    backgroundColor: '#fff',
+    marginTop: spacing.md,
+    marginHorizontal: spacing.lg,
+    borderRadius: radii.lg,
+    paddingHorizontal: spacing.md,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
+    borderColor: colors.border,
     height: 52,
   },
 
   input: {
-    fontSize: 16,
+    ...typography.body,
     flex: 1,
-    marginLeft: 10,
-    color: '#111827',
+    marginLeft: spacing.sm,
+    color: colors.text,
+  },
+
+  chipsRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    marginTop: spacing.md,
+    marginHorizontal: spacing.lg,
+  },
+
+  chip: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: 999,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+
+  chipActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+
+  chipText: {
+    ...typography.caption,
+    color: colors.muted,
+  },
+
+  chipTextActive: {
+    color: colors.surface,
   },
 
   /* ---------- RESTAURANT CARD ---------- */
 
   card: {
-    backgroundColor: '#fff',
-    borderRadius: 20,
-    marginBottom: 18,
+    backgroundColor: colors.surface,
+    borderRadius: radii.xl,
+    marginBottom: spacing.lg,
+    marginHorizontal: spacing.lg,
     overflow: 'hidden',
-    elevation: 3,
-    marginHorizontal: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
+    ...shadows.card,
+  },
+
+  cardInner: {
+    backgroundColor: colors.surface,
   },
 
   listImg: {
     width: '100%',
-    height: 180,
+    height: 190,
+    backgroundColor: colors.border,
   },
 
-  deliveryBadge: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
-    backgroundColor: '#4f46e5',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-
-  deliveryText: {
-    color: '#fff',
-    fontWeight: '600',
-    fontSize: 12,
-    marginLeft: 6,
+  cardOverlay: {
+    padding: spacing.md,
+    backgroundColor: colors.surface,
   },
 
   infoContainer: {
-    padding: 14,
+    flex: 1,
   },
 
-  nameText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#111827',
-  },
-
-  location: {
+  titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 6,
+    gap: spacing.sm,
+  },
+
+  nameText: {
+    ...typography.h3,
+    color: colors.text,
+    flex: 1,
   },
 
   locationText: {
-    color: '#6b7280',
-    fontSize: 14,
+    ...typography.sub,
+    color: colors.muted,
+    marginTop: spacing.xs,
   },
 
   ratingBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fef3c7',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 10,
+    backgroundColor: colors.tint,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: 999,
   },
 
   ratingText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#92400e',
+    ...typography.caption,
+    color: colors.primaryDark,
     marginLeft: 4,
+  },
+
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: spacing.sm,
+  },
+
+  deliveryBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.tintAlt,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: 999,
+    gap: 6,
+  },
+
+  deliveryText: {
+    ...typography.caption,
+    color: colors.primaryDark,
   },
 
   /* ---------- CART BADGE ---------- */
@@ -382,7 +428,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: -6,
     right: -10,
-    backgroundColor: '#ef4444',
+    backgroundColor: colors.error,
     borderRadius: 12,
     paddingHorizontal: 6,
     paddingVertical: 2,
@@ -392,7 +438,7 @@ const styles = StyleSheet.create({
   },
 
   badgeText: {
-    color: '#fff',
+    color: colors.surface,
     fontWeight: '700',
     fontSize: 12,
   },
