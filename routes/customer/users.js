@@ -35,6 +35,6 @@ router.post("/register", registerLimiter, register);
 router.post("/login-user", loginLimiter, loginUser);
 router.get("/userdata", authenticate, getUserData);
 router.delete("/delete/:userId", authenticate, isAdmin, deleteUser);
-router.put("/update-profile-image", authenticate, updateProfile);
+router.put("/update-profile", authenticate, updateProfile);
 
 module.exports = router;
