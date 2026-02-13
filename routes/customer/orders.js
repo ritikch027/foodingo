@@ -8,7 +8,7 @@ const {
   updateOrderStatus,
 } = require("../../controllers/owner/orderController");
 
-router.post("/orders", authenticate, createOrder);
+router.post("/orders/create", authenticate, createOrder);
 router.get("/orders/my", authenticate, getMyOrders);
 router.get("/restaurant/orders", authenticate, getRestaurantOrders);
 router.patch("/orders/:id/status", authenticate, updateOrderStatus);
