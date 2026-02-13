@@ -9,7 +9,7 @@ const {
   register,
   loginUser,
   getUserData,
-  updateProfileImage,
+  updateProfile,
 } = require("../../controllers/customer/userController");
 const {
   getAllUsers,
@@ -35,6 +35,6 @@ router.post("/register", registerLimiter, register);
 router.post("/login-user", loginLimiter, loginUser);
 router.get("/userdata", authenticate, getUserData);
 router.delete("/delete/:userId", authenticate, isAdmin, deleteUser);
-router.put("/update-profile-image", authenticate, updateProfileImage);
+router.put("/update-profile-image", authenticate, updateProfile);
 
 module.exports = router;

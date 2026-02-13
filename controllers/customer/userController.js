@@ -177,21 +177,30 @@ const getUserData = async (req, res) => {
   }
 };
 
-const updateProfileImage = async (req, res) => {
+const updateProfile = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { image_url } = req.body;
+    const { image_url, name } = req.body;
+    const updates = {};
 
-    if (!image_url) {
+    if (typeof image_url === "string" && image_url.trim()) {
+      updates.image_url = image_url.trim();
+    }
+
+    if (typeof name === "string" && name.trim()) {
+      updates.name = name.trim();
+    }
+
+    if (Object.keys(updates).length === 0) {
       return res.status(400).json({
         success: false,
-        message: "Image URL is required",
+        message: "Provide at least one field: name or image_url",
       });
     }
 
     const updatedUser = await User.findByIdAndUpdate(
       userId,
-      { image_url },
+      updates,
       { new: true, runValidators: true },
     ).lean();
 
@@ -212,7 +221,7 @@ const updateProfileImage = async (req, res) => {
     console.error("Update profile image error:", err);
     res.status(500).json({
       success: false,
-      message: "Failed to update profile image",
+      message: "Failed to update profile",
     });
   }
 };
@@ -221,5 +230,5 @@ module.exports = {
   register,
   loginUser,
   getUserData,
-  updateProfileImage,
+  updateProfile,
 };
