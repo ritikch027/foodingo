@@ -45,6 +45,8 @@ const Register = ({ navigation }) => {
   ];
 
   const handleSubmit = async data => {
+    console.log('register request arrived', data);
+
     try {
       if (data.password !== data.confirmPassword) {
         Toast.show({
@@ -70,6 +72,7 @@ const Register = ({ navigation }) => {
         });
       }
     } catch (err) {
+      console.log(err.message);
       Toast.show({
         type: 'error',
         text1: 'Registration Error',
@@ -80,6 +83,17 @@ const Register = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
+      <View style={styles.topBar}>
+        <Pressable
+          onPress={() =>
+            navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Login')
+          }
+          style={({ pressed }) => [styles.backBtn, pressed && { opacity: 0.8 }]}
+        >
+          <Icon name="arrow-left" size={18} color={colors.text} />
+        </Pressable>
+      </View>
+
       {/* Header */}
       <Animated.View
         entering={FadeInDown.duration(motion.fadeDuration)}
@@ -121,6 +135,20 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.bg,
+  },
+  topBar: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
+  },
+  backBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
   },
 
   header: {

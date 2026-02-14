@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, Pressable } from 'react-native';
 import ItemsGrid from '../components/ItemsGrid';
 import { useRoute } from '@react-navigation/native';
 import { useState, useEffect } from 'react';
@@ -6,9 +6,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import api from '../utils/api';
 import Toast from 'react-native-toast-message';
 import Loader from '../utils/Loader';
+import Icon from 'react-native-vector-icons/Feather';
 import { colors, spacing, typography } from '../theme';
 
-const RestaurantItems = () => {
+const RestaurantItems = ({ navigation }) => {
   const route = useRoute();
   const { restaurant } = route.params;
 
@@ -49,8 +50,19 @@ const RestaurantItems = () => {
 
   return (
     <View style={styles.container}>
+      <View style={[styles.topBar, { paddingTop: insets.top + 10 }]}>
+        <Pressable
+          onPress={() =>
+            navigation.canGoBack() ? navigation.goBack() : navigation.navigate('HomeWithDrawer')
+          }
+          style={({ pressed }) => [styles.backBtn, pressed && { opacity: 0.8 }]}
+        >
+          <Icon name="arrow-left" size={18} color={colors.text} />
+        </Pressable>
+      </View>
+
       {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
+      <View style={styles.header}>
         <Text style={styles.subtitle}>More from</Text>
         <Text style={styles.title}>{restaurant.name}</Text>
       </View>
@@ -76,6 +88,20 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.sm,
+  },
+  topBar: {
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.xs,
+  },
+  backBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
   },
 
   subtitle: {

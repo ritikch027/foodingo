@@ -89,7 +89,7 @@ const Profile = ({ navigation }) => {
     {
       title: 'Settings',
       icon: 'settings',
-      onPress: () => Alert.alert('Coming Soon', 'Settings feature coming soon!'),
+      onPress: () => navigation.navigate('Settings'),
     },
     user.role === 'customer' && {
       title: 'Register your restaurant',
@@ -111,6 +111,17 @@ const Profile = ({ navigation }) => {
         contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}
       >
+        <View style={styles.topBar}>
+          <Pressable
+            onPress={() =>
+              navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Home')
+            }
+            style={({ pressed }) => [styles.backBtn, pressed && { opacity: 0.8 }]}
+          >
+            <Icon name="arrow-left" size={18} color={colors.text} />
+          </Pressable>
+        </View>
+
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.headerTitle}>My Profile</Text>
@@ -211,6 +222,21 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
     paddingBottom: spacing.xl,
+  },
+  topBar: {
+    width: '100%',
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
+  },
+  backBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
   },
 
   header: {

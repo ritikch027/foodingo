@@ -19,7 +19,7 @@ import { UserContext } from '../utils/userContext';
 import ImagePickerComponent from '../utils/ImagePicker';
 import { colors, radii, spacing, typography, shadows } from '../theme';
 
-const OwnerItemsDashboard = () => {
+const OwnerItemsDashboard = ({ navigation }) => {
   const { user, foodItems, fetchCategories } = useContext(UserContext);
   const restaurantId = user?.restaurant;
 
@@ -28,6 +28,13 @@ const OwnerItemsDashboard = () => {
   const [editingItem, setEditingItem] = useState(null);
   const [saving, setSaving] = useState(false);
   const [query, setQuery] = useState('');
+  const handleBack = () => {
+    if (navigation?.canGoBack?.()) {
+      navigation.goBack();
+      return;
+    }
+    navigation?.navigate?.('Home');
+  };
 
   const fetchItems = async () => {
     if (!restaurantId) return;
@@ -229,6 +236,15 @@ const OwnerItemsDashboard = () => {
 
   return (
     <View style={styles.container}>
+      <View style={styles.topBar}>
+        <Pressable
+          onPress={handleBack}
+          style={({ pressed }) => [styles.backBtn, pressed && { opacity: 0.8 }]}
+        >
+          <Icon name="arrow-left" size={18} color={colors.text} />
+        </Pressable>
+      </View>
+
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Manage Items</Text>
         <Text style={styles.headerSubtitle}>
@@ -405,6 +421,20 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.bg,
+  },
+  topBar: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
+  },
+  backBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
   },
 
   header: {

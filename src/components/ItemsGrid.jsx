@@ -1,4 +1,4 @@
-import { FlatList, StyleSheet, useWindowDimensions } from 'react-native';
+import { FlatList, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCallback, useContext } from 'react';
 import Toast from 'react-native-toast-message';
@@ -8,22 +8,10 @@ import ItemCard from '../utils/ItemCard';
 import { spacing } from '../theme';
 
 const ItemsGrid = ({ items, contentPaddingBottom = 160 }) => {
-  const { width, height } = useWindowDimensions();
-  const isLandscape = width > height;
-  const numColumns = isLandscape ? 4 : 2;
   const insets = useSafeAreaInsets();
   const { getCartData, mappedItems } = useContext(UserContext);
 
   const addToCart = async item => {
-    if (mappedItems.length && mappedItems[0].restaurant !== item.restaurant) {
-      Toast.show({
-        type: 'info',
-        text1: 'Different Restaurant',
-        text2: 'Clear cart to add items from another restaurant',
-      });
-      return;
-    }
-
     try {
       const product = {
         productId: item._id,
@@ -41,9 +29,19 @@ const ItemsGrid = ({ items, contentPaddingBottom = 160 }) => {
         });
       }
     } catch (err) {
+      const status = err?.response?.status;
+      const message = err?.response?.data?.message;
+      const isRestaurantConflict =
+        status === 409 ||
+        (typeof message === 'string' &&
+          message.toLowerCase().includes('restaurant'));
+
       Toast.show({
-        type: 'error',
-        text1: err?.response?.data?.message || 'Error adding to cart',
+        type: isRestaurantConflict ? 'info' : 'error',
+        text1: message || 'Error adding to cart',
+        ...(isRestaurantConflict && {
+          text2: 'Clear cart to add items from another restaurant',
+        }),
       });
     }
   };
@@ -67,7 +65,6 @@ const ItemsGrid = ({ items, contentPaddingBottom = 160 }) => {
   return (
     <FlatList
       data={items}
-      numColumns={numColumns}
       showsVerticalScrollIndicator={false}
       contentContainerStyle={[
         styles.contentContainer,
@@ -83,7 +80,7 @@ export default ItemsGrid;
 
 const styles = StyleSheet.create({
   contentContainer: {
-    paddingHorizontal: spacing.sm,
+    paddingHorizontal: spacing.lg,
     paddingTop: spacing.sm,
   },
 });

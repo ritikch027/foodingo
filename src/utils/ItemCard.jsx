@@ -1,9 +1,8 @@
-import { StyleSheet, Text, View, Image, Pressable, Dimensions } from 'react-native';
+import { StyleSheet, Text, View, Image, Pressable } from 'react-native';
 import Counter from './counter';
 import Animated, { FadeInDown, Layout } from 'react-native-reanimated';
 import { colors, radii, spacing, typography, shadows, motion } from '../theme';
-
-const screenWidth = Dimensions.get('window').width;
+import Icon from 'react-native-vector-icons/Feather';
 
 const ItemCard = ({ item, cartItem, onAdd, index = 0 }) => {
   return (
@@ -14,22 +13,65 @@ const ItemCard = ({ item, cartItem, onAdd, index = 0 }) => {
       layout={Layout.springify()}
       style={styles.card}
     >
-      <Image source={{ uri: item.image.url }} style={styles.image} />
+      <View style={styles.leftContent}>
+        <View
+          style={[
+            styles.vegMarkOuter,
+            { borderColor: item.isVeg ? '#16A34A' : '#DC2626' },
+          ]}
+        >
+          <View
+            style={[
+              styles.vegMarkInner,
+              { backgroundColor: item.isVeg ? '#16A34A' : '#DC2626' },
+            ]}
+          />
+        </View>
 
-      <View style={styles.cardBody}>
-        <Text style={styles.name} numberOfLines={1}>
+        <Text style={styles.name} numberOfLines={2}>
           {item.name}
         </Text>
 
         <View style={styles.priceRow}>
-          <Text style={styles.oldPrice}>{'\u20B9'}{item.price}</Text>
-          <Text style={styles.price}>{'\u20B9'}{item.offerPrice}</Text>
+          <Text style={styles.price}>
+            {'\u20B9'}
+            {Number(item.offerPrice || item.price || 0).toFixed(2)}
+          </Text>
+          {Number(item.offerPrice || 0) < Number(item.price || 0) && (
+            <Text style={styles.oldPrice}>
+              {'\u20B9'}
+              {Number(item.price || 0).toFixed(2)}
+            </Text>
+          )}
         </View>
 
-        <Text style={styles.discount}>{item.discountPercent}% OFF</Text>
+        <Text style={styles.desc} numberOfLines={3}>
+          {item.description || `${item.discountPercent || 0}% off on this item`}
+        </Text>
+
+        <View style={styles.metaActions}>
+          <Pressable style={styles.metaIconBtn}>
+            <Icon name="bookmark" size={16} color={colors.muted} />
+          </Pressable>
+          <Pressable style={styles.metaIconBtn}>
+            <Icon name="corner-up-right" size={16} color={colors.muted} />
+          </Pressable>
+        </View>
+      </View>
+
+      <View style={styles.rightContent}>
+        {item?.image?.url ? (
+          <Image source={{ uri: item.image.url }} style={styles.image} />
+        ) : (
+          <View style={[styles.image, styles.imageFallback]}>
+            <Icon name="image" size={20} color={colors.muted} />
+          </View>
+        )}
 
         {cartItem ? (
-          <Counter item={cartItem} />
+          <View style={styles.counterSlot}>
+            <Counter item={cartItem} compact />
+          </View>
         ) : (
           <Pressable
             onPress={() => onAdd?.(item)}
@@ -38,15 +80,10 @@ const ItemCard = ({ item, cartItem, onAdd, index = 0 }) => {
               pressed && { opacity: 0.85 },
             ]}
           >
-            <Text style={styles.addText}>Add</Text>
+            <Text style={styles.addText}>ADD</Text>
+            <Icon name="plus" size={18} color={colors.primaryDark} />
           </Pressable>
         )}
-      </View>
-
-      <View style={styles.vegBadge}>
-        <Text style={styles.vegText}>
-          {item.isVeg ? '\uD83D\uDFE2 Veg' : '\uD83D\uDD34 Non-Veg'}
-        </Text>
       </View>
     </Animated.View>
   );
@@ -56,34 +93,58 @@ export default ItemCard;
 
 const styles = StyleSheet.create({
   card: {
-    width: screenWidth * 0.44,
+    width: '100%',
     backgroundColor: colors.surface,
-    borderRadius: radii.lg,
+    borderRadius: radii.xl,
     marginBottom: spacing.md,
-    marginHorizontal: spacing.xs,
-    overflow: 'hidden',
-    ...shadows.card,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    flexDirection: 'row',
+    gap: spacing.md,
+  },
+
+  leftContent: {
+    flex: 1,
+    paddingRight: spacing.sm,
+  },
+
+  rightContent: {
+    width: 132,
+    alignItems: 'center',
   },
 
   image: {
-    width: '100%',
+    width: 132,
     height: 132,
+    borderRadius: radii.lg,
+    backgroundColor: colors.bg,
   },
-
-  cardBody: {
-    padding: spacing.sm,
+  imageFallback: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.border,
   },
 
   name: {
-    ...typography.sub,
+    ...typography.h3,
     color: colors.text,
+    marginTop: spacing.xs,
   },
 
   priceRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
+    gap: spacing.xs,
     marginTop: spacing.xs,
+  },
+
+  price: {
+    ...typography.h3,
+    color: colors.text,
+    fontWeight: '800',
   },
 
   oldPrice: {
@@ -92,44 +153,69 @@ const styles = StyleSheet.create({
     textDecorationLine: 'line-through',
   },
 
-  price: {
-    ...typography.body,
-    color: colors.accent,
-  },
-
-  discount: {
-    ...typography.caption,
-    color: colors.primaryDark,
-    marginTop: spacing.xs,
+  desc: {
+    ...typography.sub,
+    color: colors.muted,
+    marginTop: spacing.sm,
+    lineHeight: 22,
   },
 
   addBtn: {
-    marginTop: spacing.sm,
-    backgroundColor: colors.primary,
-    paddingVertical: 8,
-    borderRadius: radii.md,
-    alignItems: 'center',
-  },
-
-  addText: {
-    color: colors.surface,
-    fontWeight: '700',
-    fontSize: 14,
-  },
-
-  vegBadge: {
     position: 'absolute',
-    top: 8,
-    left: 8,
-    backgroundColor: colors.surface,
-    paddingHorizontal: spacing.xs,
-    paddingVertical: 2,
-    borderRadius: 999,
+    bottom: -14,
+    width: 116,
+    marginTop: spacing.sm,
+    backgroundColor: '#E8F5EE',
+    borderWidth: 1,
+    borderColor: '#3E9C69',
+    paddingVertical: 10,
+    borderRadius: radii.md,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: spacing.md,
+    alignItems: 'center',
     ...shadows.soft,
   },
 
-  vegText: {
-    ...typography.caption,
-    color: colors.text,
+  addText: {
+    color: colors.primaryDark,
+    fontWeight: '800',
+    fontSize: 18,
+  },
+
+  vegMarkOuter: {
+    width: 18,
+    height: 18,
+    borderWidth: 1.5,
+    borderRadius: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  vegMarkInner: {
+    width: 9,
+    height: 9,
+    borderRadius: 999,
+  },
+
+  metaActions: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    marginTop: spacing.sm,
+  },
+
+  metaIconBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  counterSlot: {
+    position: 'absolute',
+    bottom: -14,
   },
 });

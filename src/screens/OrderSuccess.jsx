@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Pressable } from 'react-native';
+import Icon from 'react-native-vector-icons/Feather';
 import { colors, radii, spacing, typography, shadows } from '../theme';
 
 const OrderSuccess = ({ route, navigation }) => {
@@ -10,6 +11,17 @@ const OrderSuccess = ({ route, navigation }) => {
 
   return (
     <View style={styles.container}>
+      <View style={styles.topBar}>
+        <Pressable
+          onPress={() =>
+            navigation.canGoBack() ? navigation.goBack() : navigation.navigate('HomeWithDrawer')
+          }
+          style={({ pressed }) => [styles.backBtn, pressed && { opacity: 0.8 }]}
+        >
+          <Icon name="arrow-left" size={18} color={colors.text} />
+        </Pressable>
+      </View>
+
       <View style={styles.iconWrap}>
         <Text style={styles.iconText}>{'\uD83C\uDF89'}</Text>
       </View>
@@ -45,6 +57,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: spacing.xl,
     backgroundColor: colors.bg,
+  },
+  topBar: {
+    position: 'absolute',
+    top: spacing.lg,
+    left: spacing.lg,
+  },
+  backBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
   },
 
   iconWrap: {

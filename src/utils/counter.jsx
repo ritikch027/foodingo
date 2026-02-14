@@ -12,7 +12,7 @@ import Animated, {
 
 const screenWidth = Dimensions.get('window').width;
 
-const Counter = ({ item }) => {
+const Counter = ({ item, compact = false }) => {
   const { decreaseQuantity, increaseQuantity } = useContext(UserContext);
 
   const scale = useSharedValue(1);
@@ -28,8 +28,8 @@ const Counter = ({ item }) => {
   }));
 
   return (
-    <View style={styles.wrapper}>
-      <View style={styles.counter}>
+    <View style={[styles.wrapper, compact && styles.wrapperCompact]}>
+      <View style={[styles.counter, compact && styles.counterCompact]}>
         <Pressable
           onPress={() => decreaseQuantity({ item })}
           style={({ pressed }) => [styles.iconBtn, pressed && styles.pressed]}
@@ -60,6 +60,10 @@ const styles = StyleSheet.create({
     width: screenWidth * 0.22,
     alignItems: 'center',
   },
+  wrapperCompact: {
+    width: 116,
+    marginTop: 0,
+  },
 
   counter: {
     flexDirection: 'row',
@@ -72,6 +76,11 @@ const styles = StyleSheet.create({
     width: '100%',
     borderWidth: 1,
     borderColor: colors.border,
+  },
+  counterCompact: {
+    backgroundColor: '#E8F5EE',
+    borderColor: '#3E9C69',
+    borderRadius: radii.md,
   },
 
   quantity: {

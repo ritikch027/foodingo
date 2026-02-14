@@ -16,9 +16,20 @@ import Toast from 'react-native-toast-message';
 import Loader from '../utils/Loader';
 import { colors, radii, spacing, typography, shadows, motion } from '../theme';
 
+const normalizeStatus = status => {
+  const value = String(status || '')
+    .trim()
+    .toUpperCase();
+
+  if (value === 'PREPARING') return 'Preparing';
+  if (value === 'DELIVERED') return 'Delivered';
+  if (value === 'ON_THE_WAY' || value === 'ON THE WAY') return 'On the way';
+
+  return status || 'Preparing';
+};
+
 const MyOrders = ({ navigation }) => {
   const insets = useSafeAreaInsets();
-
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -28,8 +39,44 @@ const MyOrders = ({ navigation }) => {
 
   const fetchOrders = async () => {
     try {
-      const res = await api.get('/orders/user');
-      setOrders(res.data.orders || []);
+      const ordersRes = await api.get('/orders/my');
+      const rawOrders = ordersRes.data.orders || [];
+
+      const restaurantIdSet = new Set();
+      rawOrders.forEach(order => {
+        if (order.restaurantName || order.restaurant?.name) return;
+        const id =
+          typeof order.restaurant === 'string'
+            ? order.restaurant
+            : order.restaurant?._id;
+        if (id) restaurantIdSet.add(id);
+      });
+
+      let restaurantNameMap = {};
+      if (restaurantIdSet.size > 0) {
+        const restaurantsRes = await api.get('/restaurants');
+        const restaurants = restaurantsRes.data.restaurants || [];
+        restaurantNameMap = restaurants.reduce((acc, restaurant) => {
+          acc[restaurant._id] = restaurant.name;
+          return acc;
+        }, {});
+      }
+
+      const normalizedOrders = rawOrders.map(order => {
+        const restaurantId =
+          typeof order.restaurant === 'string'
+            ? order.restaurant
+            : order.restaurant?._id;
+
+        const restaurantName =
+          order.restaurantName ||
+          order.restaurant?.name ||
+          restaurantNameMap[restaurantId];
+
+        return restaurantName ? { ...order, restaurantName } : order;
+      });
+
+      setOrders(normalizedOrders);
     } catch (error) {
       Toast.show({
         type: 'error',
@@ -54,7 +101,7 @@ const MyOrders = ({ navigation }) => {
   const filteredOrders =
     activeFilter === 'All'
       ? orders
-      : orders.filter(order => order.status === activeFilter);
+      : orders.filter(order => normalizeStatus(order.status) === activeFilter);
 
   const EmptyState = () => (
     <View style={styles.emptyContainer}>
@@ -82,13 +129,24 @@ const MyOrders = ({ navigation }) => {
     <View style={[styles.container, { paddingTop: insets.top + 10 }]}>
       {/* Header */}
       <View style={styles.headerSection}>
-        <Animated.View
-          entering={FadeInDown.duration(motion.fadeDuration)}
-          style={styles.headerContent}
-        >
-          <Icon name="package" size={22} color={colors.primary} />
-          <Text style={styles.headingTxt}>My Orders</Text>
-        </Animated.View>
+        <View style={styles.headerLeft}>
+          <Pressable
+            onPress={() =>
+              navigation.canGoBack() ? navigation.goBack() : navigation.navigate('HomeWithDrawer')
+            }
+            style={({ pressed }) => [styles.backBtn, pressed && { opacity: 0.8 }]}
+          >
+            <Icon name="arrow-left" size={18} color={colors.text} />
+          </Pressable>
+
+          <Animated.View
+            entering={FadeInDown.duration(motion.fadeDuration)}
+            style={styles.headerContent}
+          >
+            <Icon name="package" size={22} color={colors.primary} />
+            <Text style={styles.headingTxt}>My Orders</Text>
+          </Animated.View>
+        </View>
 
         {orders.length > 0 && (
           <View style={styles.orderCountBadge}>
@@ -140,8 +198,8 @@ const MyOrders = ({ navigation }) => {
         renderItem={({ item, index }) => (
           <OrderCard
             restaurantName={item.restaurantName || 'Restaurant'}
-            status={item.status}
-            total={item.total}
+            status={normalizeStatus(item.status)}
+            total={item.totalAmount ?? item.total ?? item.subtotal}
             orderId={item.orderId || item._id}
             orderDate={new Date(item.createdAt).toLocaleDateString('en-US', {
               month: 'short',
@@ -179,6 +237,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  backBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
   },
 
   headerContent: {

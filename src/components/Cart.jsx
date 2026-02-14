@@ -6,6 +6,7 @@ import {
   Image,
   Dimensions,
   TouchableOpacity,
+  Pressable,
 } from 'react-native';
 import Counter from '../utils/counter';
 import { useEffect, useState, useContext } from 'react';
@@ -52,9 +53,20 @@ const Cart = ({ navigation }) => {
     <View style={[styles.container, { paddingTop: insets.top + 20 }]}>
       {/* Header */}
       <View style={styles.headerSection}>
-        <View style={styles.headerContent}>
-          <Icon name="shopping-cart" size={22} color={colors.primary} />
-          <Text style={styles.headingTxt}>Your Cart</Text>
+        <View style={styles.headerLeft}>
+          <Pressable
+            onPress={() =>
+              navigation.canGoBack() ? navigation.goBack() : navigation.navigate('HomeWithDrawer')
+            }
+            style={({ pressed }) => [styles.backBtn, pressed && { opacity: 0.8 }]}
+          >
+            <Icon name="arrow-left" size={18} color={colors.text} />
+          </Pressable>
+
+          <View style={styles.headerContent}>
+            <Icon name="shopping-cart" size={22} color={colors.primary} />
+            <Text style={styles.headingTxt}>Your Cart</Text>
+          </View>
         </View>
 
         {totalItems > 0 && (
@@ -154,6 +166,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  backBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
   },
 
   headerContent: {

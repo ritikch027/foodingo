@@ -50,12 +50,12 @@ export const UserProvider = ({ children }) => {
       const items = res.data.cart?.items || [];
       setCartItems(items);
     } catch (error) {
-      Toast.show({
-        type: 'error',
-        text1: 'Cart Error',
-        text2: 'Failed to load cart',
-      });
+      console.log('Cart API error:', error.message);
     }
+  }, []);
+
+  const clearCart = useCallback(() => {
+    setCartItems([]);
   }, []);
 
   // Map cart items for UI
@@ -149,6 +149,7 @@ export const UserProvider = ({ children }) => {
         cartItems,
         mappedItems,
         getCartData,
+        clearCart,
 
         increaseQuantity,
         decreaseQuantity,

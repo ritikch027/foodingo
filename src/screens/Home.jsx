@@ -29,6 +29,7 @@ const Home = ({ navigation }) => {
   const insets = useSafeAreaInsets();
   const { user, setUser, mappedItems, fetchCategories } =
     useContext(UserContext);
+  const firstName = user?.name?.trim()?.split(/\s+/)?.[0] || 'Guest';
 
   const totalItems = mappedItems.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -77,7 +78,6 @@ const Home = ({ navigation }) => {
     let mounted = true;
     const boot = async () => {
       try {
-        await fetchOffers();
         await fetchRestaurants();
         await fetchUser();
         await fetchCategories();
@@ -114,7 +114,7 @@ const Home = ({ navigation }) => {
       </View>
 
       <Text style={styles.greet}>
-        Hi {user?.name || 'Guest'} {'\uD83D\uDC4B'}
+        Hi {firstName} {'\uD83D\uDC4B'}
       </Text>
       <Text style={styles.heading}>Find your favorite food fast</Text>
 
@@ -170,36 +170,51 @@ const Home = ({ navigation }) => {
             pressed && { opacity: 0.9 },
           ]}
         >
-          <Image source={{ uri: item.image.url }} style={styles.listImg} />
-
           <View style={styles.cardOverlay}>
-            <View style={styles.titleRow}>
-              <Text style={styles.nameText} numberOfLines={1}>
-                {item.name}
-              </Text>
-              <View style={styles.ratingBadge}>
-                <FontAwesome name="star" size={12} color={colors.warning} />
-                <Text style={styles.ratingText}>{item.rating}</Text>
-              </View>
-            </View>
-
-            <Text style={styles.locationText} numberOfLines={1}>
-              {item.location}
-            </Text>
-
-            <View style={styles.metaRow}>
-              <View style={styles.deliveryBadge}>
-                <Ionicons name="time" size={12} color={colors.primaryDark} />
-                <Text style={styles.deliveryText}>
-                  {item.deliveryTime} mins
+            <View style={styles.leftBlock}>
+              <View style={styles.titleRow}>
+                <Text style={styles.nameText} numberOfLines={2}>
+                  {item.name}
                 </Text>
+                <View style={styles.ratingBadge}>
+                  <FontAwesome name="star" size={12} color={colors.warning} />
+                  <Text style={styles.ratingText}>
+                    {Number(item.rating || 0).toFixed(1)}
+                  </Text>
+                </View>
+              </View>
+
+              <Text style={styles.locationText} numberOfLines={1}>
+                {item.location || 'Location unavailable'}
+              </Text>
+
+              <View style={styles.metaRow}>
+                <View style={styles.deliveryBadge}>
+                  <Ionicons name="time" size={12} color={colors.primaryDark} />
+                  <Text style={styles.deliveryText}>
+                    {item.deliveryTime || 30} mins
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.ctaWrap}>
+                <Text style={styles.ctaText}>View Menu</Text>
+                <Ionicons name="arrow-forward" size={14} color={colors.primaryDark} />
               </View>
             </View>
+
+            {item?.image?.url ? (
+              <Image source={{ uri: item.image.url }} style={styles.listImg} />
+            ) : (
+              <View style={[styles.listImg, styles.imgFallback]}>
+                <Ionicons name="image-outline" size={22} color={colors.muted} />
+              </View>
+            )}
           </View>
         </Pressable>
       </Animated.View>
     ),
-    [activeFilter],
+    [navigation],
   );
 
   if (loading && restaurants.length === 0) return <HomeSkeleton />;
@@ -342,25 +357,38 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
     borderRadius: radii.xl,
-    marginBottom: spacing.lg,
+    marginBottom: spacing.md,
     marginHorizontal: spacing.lg,
-    overflow: 'hidden',
-    ...shadows.card,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
 
   cardInner: {
     backgroundColor: colors.surface,
+    borderRadius: radii.xl,
   },
 
   listImg: {
-    width: '100%',
-    height: 190,
+    width: 108,
+    height: 108,
+    borderRadius: radii.lg,
     backgroundColor: colors.border,
+  },
+  imgFallback: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
   cardOverlay: {
     padding: spacing.md,
     backgroundColor: colors.surface,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+
+  leftBlock: {
+    flex: 1,
   },
 
   infoContainer: {
@@ -418,6 +446,23 @@ const styles = StyleSheet.create({
   },
 
   deliveryText: {
+    ...typography.caption,
+    color: colors.primaryDark,
+  },
+
+  ctaWrap: {
+    marginTop: spacing.sm,
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: colors.tintAlt,
+    borderRadius: 999,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+  },
+
+  ctaText: {
     ...typography.caption,
     color: colors.primaryDark,
   },

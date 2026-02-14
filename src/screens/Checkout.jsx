@@ -19,7 +19,7 @@ import { colors, radii, spacing, typography, shadows, motion } from '../theme';
 
 const Checkout = ({ navigation }) => {
   const insets = useSafeAreaInsets();
-  const { mappedItems, user } = useContext(UserContext);
+  const { mappedItems, user, clearCart, getCartData } = useContext(UserContext);
 
   const [address, setAddress] = useState(user?.address || '');
   const [phone, setPhone] = useState(user?.phone || '');
@@ -27,7 +27,7 @@ const Checkout = ({ navigation }) => {
 
   // Calculate totals
   const subtotal = mappedItems.reduce(
-    (sum, item) => sum + item.offerPrice * item.quantity,
+    (sum, item) => sum + (item.offerPrice || item.price) * item.quantity,
     0,
   );
   const deliveryFee = 40;
@@ -35,6 +35,7 @@ const Checkout = ({ navigation }) => {
   const total = subtotal + deliveryFee + tax;
 
   const handlePlaceOrder = async () => {
+    console.log('order request arrived');
     if (!address.trim()) {
       Toast.show({
         type: 'error',
@@ -44,34 +45,14 @@ const Checkout = ({ navigation }) => {
       return;
     }
 
-    if (!phone.trim()) {
-      Toast.show({
-        type: 'error',
-        text1: 'Phone Required',
-        text2: 'Please enter your phone number',
-      });
-      return;
-    }
-
     setLoading(true);
     try {
-      const orderData = {
-        items: mappedItems.map(item => ({
-          itemId: item._id,
-          quantity: item.quantity,
-          price: item.offerPrice,
-        })),
-        deliveryAddress: address,
-        phone,
-        subtotal,
-        deliveryFee,
-        tax,
-        total,
-      };
-
-      const res = await api.post('/orders/create', orderData);
+      const res = await api.post('/orders/create', { address });
 
       if (res.data.success) {
+        clearCart();
+        getCartData();
+
         Toast.show({
           type: 'success',
           text1: 'Order Placed!',
@@ -85,13 +66,14 @@ const Checkout = ({ navigation }) => {
               { name: 'HomeWithDrawer' },
               {
                 name: 'OrderSuccess',
-                params: { orderId: res.data.orderId },
+                params: { orderId: res.data.order?._id },
               },
             ],
           });
         }, 1000);
       }
     } catch (error) {
+      console.log(error.message);
       Toast.show({
         type: 'error',
         text1: 'Order Failed',
@@ -184,7 +166,7 @@ const Checkout = ({ navigation }) => {
                 </View>
                 <Text style={styles.itemPrice}>
                   {'\u20B9'}
-                  {item.offerPrice * item.quantity}
+                  {(item.offerPrice || item.price) * item.quantity}
                 </Text>
               </View>
             ))}

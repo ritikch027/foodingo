@@ -21,6 +21,9 @@ import AddRestaurant from '../additionComponents/AddRestaurant';
 import AddItem from '../additionComponents/AddItems';
 import AddCategory from '../additionComponents/AddCategory';
 import OwnerItemsDashboard from '../screens/OwnerItemsDashboard';
+import AdminManagement from '../screens/AdminManagement';
+import UserDetails from '../screens/UserDetails';
+import RestaurantDetails from '../screens/RestaurantDetails';
 
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { colors, radii, spacing, typography, shadows, motion } from '../theme';
@@ -57,21 +60,26 @@ const CustomDrawerContent = props => {
 
   const menuItems = [
     { name: 'Home', icon: 'home', screen: 'Home' },
-    { name: 'My Orders', screen: 'MyOrders', icon: 'shopping-bag' },
     { name: 'Profile', icon: 'user', screen: 'Profile' },
 
+    ...(user?.role === 'customer'
+      ? [{ name: 'My Orders', screen: 'MyOrders', icon: 'shopping-bag' }]
+      : []),
     ...(user?.role === 'owner'
       ? [
           { name: 'Add Items', icon: 'package', screen: 'AddItem' },
-          { name: 'Manage Items', icon: 'edit-3', screen: 'OwnerItemsDashboard' },
-          { name: 'Delete Restaurant', icon: 'trash-2', screen: 'AddItem' },
+          {
+            name: 'Manage Items',
+            icon: 'edit-3',
+            screen: 'OwnerItemsDashboard',
+          },
           { name: 'Orders', icon: 'clipboard', screen: 'RestaurantOrders' },
         ]
       : []),
 
     ...(user?.role === 'admin'
       ? [
-          { name: 'Delete Restaurant', icon: 'trash-2', screen: 'AddItem' },
+          { name: 'Admin Panel', icon: 'shield', screen: 'AdminManagement' },
           { name: 'Add Category', icon: 'tag', screen: 'AddCategory' },
         ]
       : []),
@@ -218,6 +226,9 @@ const HomeWithDrawer = () => {
       <Drawer.Screen name="AddRestaurant" component={AddRestaurant} />
       <Drawer.Screen name="AddItem" component={AddItem} />
       <Drawer.Screen name="AddCategory" component={AddCategory} />
+      <Drawer.Screen name="AdminManagement" component={AdminManagement} />
+      <Drawer.Screen name="UserDetails" component={UserDetails} />
+      <Drawer.Screen name="RestaurantDetails" component={RestaurantDetails} />
       <Drawer.Screen
         name="OwnerItemsDashboard"
         component={OwnerItemsDashboard}
