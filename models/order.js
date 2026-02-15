@@ -44,6 +44,43 @@ const OrderSchema = new Schema(
       address: String,
     },
 
+    paymentMethod: {
+      type: String,
+      enum: ["COD", "ONLINE"],
+      default: "COD",
+    },
+
+    isPaid: {
+      type: Boolean,
+      default: false,
+    },
+
+    paidAt: {
+      type: Date,
+      default: null,
+    },
+
+    paymentGateway: {
+      type: String,
+      enum: ["RAZORPAY", null],
+      default: null,
+    },
+
+    razorpayOrderId: {
+      type: String,
+      default: null,
+    },
+
+    razorpayPaymentId: {
+      type: String,
+      default: null,
+    },
+
+    razorpaySignature: {
+      type: String,
+      default: null,
+    },
+
     status: {
       type: String,
       enum: [
@@ -66,5 +103,6 @@ const OrderSchema = new Schema(
 OrderSchema.index({ user: 1 });
 OrderSchema.index({ restaurant: 1 });
 OrderSchema.index({ status: 1 });
+OrderSchema.index({ razorpayOrderId: 1 });
 
 module.exports = model("Order", OrderSchema);

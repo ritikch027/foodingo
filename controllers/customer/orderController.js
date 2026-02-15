@@ -51,6 +51,10 @@ const createOrder = async (req, res) => {
       deliveryFee,
       totalAmount,
       deliveryAddress: { address },
+      paymentMethod: "COD",
+      isPaid: false,
+      paymentGateway: null,
+      status: "PENDING_PAYMENT",
     });
 
     await Cart.deleteOne({ user: req.user.id });

@@ -8,6 +8,7 @@ const users = require("./routes/customer/users");
 const restaurants = require("./routes/owner/restaurants");
 const cart = require("./routes/customer/cartItems");
 const admin = require("./routes/admin/adminRoutes");
+const payments = require("./routes/customer/payments");
 
 const cors = require("cors");
 const helmet = require("helmet");
@@ -63,6 +64,7 @@ app.use("/api", cart);
 app.use("/api", admin);
 app.use("/api", restaurants);
 app.use("/api", orders);
+app.use("/api", payments);
 
 // ---------- Health Check ----------
 app.get("/health", (req, res) => {
