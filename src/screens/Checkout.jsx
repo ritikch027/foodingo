@@ -15,6 +15,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { UserContext } from '../utils/userContext';
 import api from '../utils/api';
 import Toast from 'react-native-toast-message';
+import RazorpayCheckout from 'react-native-razorpay';
 import { colors, radii, spacing, typography, shadows, motion } from '../theme';
 
 const Checkout = ({ navigation }) => {
@@ -24,6 +25,7 @@ const Checkout = ({ navigation }) => {
   const [address, setAddress] = useState(user?.address || '');
   const [phone, setPhone] = useState(user?.phone || '');
   const [loading, setLoading] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState('ONLINE');
 
   // Calculate totals
   const subtotal = mappedItems.reduce(
@@ -34,8 +36,87 @@ const Checkout = ({ navigation }) => {
   const tax = subtotal * 0.05;
   const total = subtotal + deliveryFee + tax;
 
+  const finishOrderFlow = order => {
+    clearCart();
+    getCartData();
+
+    Toast.show({
+      type: 'success',
+      text1: 'Order Placed!',
+      text2: 'Your order has been confirmed',
+    });
+
+    setTimeout(() => {
+      navigation.reset({
+        index: 0,
+        routes: [
+          { name: 'HomeWithDrawer' },
+          {
+            name: 'OrderSuccess',
+            params: { orderId: order?._id || order?.id, order },
+          },
+        ],
+      });
+    }, 1000);
+  };
+
+  const placeCashOnDeliveryOrder = async () => {
+    const res = await api.post('/orders/create', { address, phone });
+    if (!res?.data?.success) {
+      throw new Error(res?.data?.message || 'Failed to place order');
+    }
+    finishOrderFlow(res.data.order);
+  };
+
+  const placeRazorpayOrder = async () => {
+    const orderRes = await api.post('/payments/razorpay/order', { address, phone });
+    if (!orderRes?.data?.success) {
+      throw new Error(orderRes?.data?.message || 'Failed to initialize payment');
+    }
+
+    const razorpayOrderId =
+      orderRes.data.razorpayOrderId || orderRes.data.razorpay_order_id;
+    const amount = orderRes.data.amount;
+    const currency = orderRes.data.currency || 'INR';
+    const keyId = orderRes.data.keyId || orderRes.data.key;
+    const appOrderId = orderRes.data.orderId || orderRes.data.order?._id;
+
+    if (!razorpayOrderId || !amount || !keyId) {
+      throw new Error('Incomplete payment configuration from server');
+    }
+
+    const options = {
+      key: keyId,
+      amount: String(amount),
+      currency,
+      name: 'Foodingo',
+      description: 'Food order payment',
+      order_id: razorpayOrderId,
+      prefill: {
+        name: user?.name || '',
+        email: user?.email || '',
+        contact: phone || user?.phone || '',
+      },
+      theme: { color: colors.primary },
+    };
+
+    const payment = await RazorpayCheckout.open(options);
+
+    const verifyRes = await api.post('/payments/razorpay/verify', {
+      orderId: appOrderId,
+      razorpay_payment_id: payment.razorpay_payment_id,
+      razorpay_order_id: payment.razorpay_order_id,
+      razorpay_signature: payment.razorpay_signature,
+    });
+
+    if (!verifyRes?.data?.success) {
+      throw new Error(verifyRes?.data?.message || 'Payment verification failed');
+    }
+
+    finishOrderFlow(verifyRes.data.order || orderRes.data.order || { _id: appOrderId });
+  };
+
   const handlePlaceOrder = async () => {
-    console.log('order request arrived');
     if (!address.trim()) {
       Toast.show({
         type: 'error',
@@ -45,40 +126,46 @@ const Checkout = ({ navigation }) => {
       return;
     }
 
-    setLoading(true);
-    try {
-      const res = await api.post('/orders/create', { address });
-
-      if (res.data.success) {
-        clearCart();
-        getCartData();
-
-        Toast.show({
-          type: 'success',
-          text1: 'Order Placed!',
-          text2: 'Your order has been confirmed',
-        });
-
-        setTimeout(() => {
-          navigation.reset({
-            index: 0,
-            routes: [
-              { name: 'HomeWithDrawer' },
-              {
-                name: 'OrderSuccess',
-                params: { orderId: res.data.order?._id },
-              },
-            ],
-          });
-        }, 1000);
-      }
-    } catch (error) {
-      console.log(error.message);
+    if (!phone.trim()) {
       Toast.show({
         type: 'error',
-        text1: 'Order Failed',
-        text2: error?.response?.data?.message || 'Something went wrong',
+        text1: 'Phone Required',
+        text2: 'Please enter your phone number',
       });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      if (paymentMethod === 'COD') {
+        await placeCashOnDeliveryOrder();
+      } else {
+        await placeRazorpayOrder();
+      }
+    } catch (error) {
+      const errorMessage =
+        error?.description ||
+        error?.response?.data?.message ||
+        error?.message ||
+        'Something went wrong';
+
+      const isPaymentCancelled =
+        String(errorMessage).toLowerCase().includes('cancel') ||
+        String(error?.code) === 'PAYMENT_CANCELLED';
+
+      if (isPaymentCancelled) {
+        Toast.show({
+          type: 'info',
+          text1: 'Payment Cancelled',
+          text2: 'You can try placing the order again',
+        });
+      } else {
+        Toast.show({
+          type: 'error',
+          text1: 'Order Failed',
+          text2: errorMessage,
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -216,6 +303,59 @@ const Checkout = ({ navigation }) => {
             </View>
           </View>
         </Animated.View>
+
+        <Animated.View
+          entering={FadeInDown.duration(motion.fadeDuration).delay(160)}
+          style={styles.section}
+        >
+          <Text style={styles.sectionTitle}>Payment Method</Text>
+
+          <View style={styles.card}>
+            <Pressable
+              onPress={() => setPaymentMethod('ONLINE')}
+              style={[
+                styles.paymentOption,
+                paymentMethod === 'ONLINE' && styles.paymentOptionActive,
+              ]}
+            >
+              <View style={styles.paymentLeft}>
+                <Icon
+                  name={paymentMethod === 'ONLINE' ? 'check-circle' : 'circle'}
+                  size={18}
+                  color={
+                    paymentMethod === 'ONLINE' ? colors.primaryDark : colors.muted
+                  }
+                />
+                <View>
+                  <Text style={styles.paymentTitle}>Online (Razorpay)</Text>
+                  <Text style={styles.paymentSub}>UPI, cards, netbanking, wallet</Text>
+                </View>
+              </View>
+              <Icon name="credit-card" size={16} color={colors.muted} />
+            </Pressable>
+
+            <Pressable
+              onPress={() => setPaymentMethod('COD')}
+              style={[
+                styles.paymentOption,
+                paymentMethod === 'COD' && styles.paymentOptionActive,
+              ]}
+            >
+              <View style={styles.paymentLeft}>
+                <Icon
+                  name={paymentMethod === 'COD' ? 'check-circle' : 'circle'}
+                  size={18}
+                  color={paymentMethod === 'COD' ? colors.primaryDark : colors.muted}
+                />
+                <View>
+                  <Text style={styles.paymentTitle}>Cash on Delivery</Text>
+                  <Text style={styles.paymentSub}>Pay when your order arrives</Text>
+                </View>
+              </View>
+              <Icon name="dollar-sign" size={16} color={colors.muted} />
+            </Pressable>
+          </View>
+        </Animated.View>
       </ScrollView>
 
       {/* Place Order Button */}
@@ -238,7 +378,13 @@ const Checkout = ({ navigation }) => {
           disabled={loading}
         >
           <Text style={styles.placeOrderText}>
-            {loading ? 'Placing Order...' : 'Place Order'}
+            {loading
+              ? paymentMethod === 'ONLINE'
+                ? 'Processing Payment...'
+                : 'Placing Order...'
+              : paymentMethod === 'ONLINE'
+                ? 'Pay & Place Order'
+                : 'Place Order (COD)'}
           </Text>
           <Icon name="check-circle" size={18} color={colors.surface} />
         </Pressable>
@@ -408,6 +554,39 @@ const styles = StyleSheet.create({
   totalValue: {
     ...typography.h3,
     color: colors.primaryDark,
+  },
+
+  paymentOption: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radii.md,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+
+  paymentOptionActive: {
+    borderColor: colors.primaryDark,
+    backgroundColor: colors.tint,
+  },
+
+  paymentLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    flex: 1,
+  },
+
+  paymentTitle: {
+    ...typography.sub,
+    color: colors.text,
+  },
+
+  paymentSub: {
+    ...typography.caption,
+    color: colors.muted,
   },
 
   /* Bottom Bar */

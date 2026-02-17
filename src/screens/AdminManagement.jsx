@@ -164,21 +164,14 @@ const AdminManagement = () => {
   };
 
   const renderRestaurantItem = ({ item }) => {
-    const initial = String(item?.name || 'R').trim().charAt(0).toUpperCase();
+    const initial = String(item?.name || 'R')
+      .trim()
+      .charAt(0)
+      .toUpperCase();
     const ownerId = getOwnerId(item);
     const ownerFromUsers = ownerId ? usersById[ownerId] : null;
-    const ownerName =
-      item?.owner?.name ||
-      item?.ownerName ||
-      ownerFromUsers?.name ||
-      item?.owner?.fullName ||
-      '-';
-    const ownerPhone =
-      item?.phone ||
-      item?.owner?.phone ||
-      item?.ownerPhone ||
-      ownerFromUsers?.phone ||
-      '-';
+    const ownerName = ownerFromUsers?.name || '-';
+    const ownerPhone = ownerFromUsers?.phone || '-';
 
     return (
       <Pressable
@@ -260,7 +253,10 @@ const AdminManagement = () => {
         <View style={styles.headerTopRow}>
           <Pressable
             onPress={handleBack}
-            style={({ pressed }) => [styles.backBtn, pressed && { opacity: 0.8 }]}
+            style={({ pressed }) => [
+              styles.backBtn,
+              pressed && { opacity: 0.8 },
+            ]}
           >
             <Icon name="arrow-left" size={18} color={colors.text} />
           </Pressable>
