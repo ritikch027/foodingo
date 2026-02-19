@@ -247,16 +247,16 @@ POST   /api/offers            (Admin only)
 
 This backend is built to scale to:
 
-* 100k+ users
-* Millions of cart operations
+* A large number of users
+* Lots of cart operations
 * High traffic browsing
-* Cloud deployment (Docker / AWS / Railway / Render)
+* Cloud deployment (Render)
 
 ---
 
 ## 🧑‍💻 Author
 
-Built by **Foodingo Backend Team**
+Built by **Ritik Chauhan**
 Designed for real-world food delivery platforms.
 
 ---
