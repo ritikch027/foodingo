@@ -22,6 +22,11 @@ const Checkout = ({ navigation }) => {
   const insets = useSafeAreaInsets();
   const { mappedItems, user, clearCart, getCartData } = useContext(UserContext);
 
+  const role = String(user?.role || '')
+    .toLowerCase()
+    .trim();
+  const isNonCustomer = Boolean(role) && role !== 'customer';
+
   const [address, setAddress] = useState(user?.address || '');
   const [phone, setPhone] = useState(user?.phone || '');
   const [loading, setLoading] = useState(false);
@@ -117,6 +122,15 @@ const Checkout = ({ navigation }) => {
   };
 
   const handlePlaceOrder = async () => {
+    if (isNonCustomer) {
+      Toast.show({
+        type: 'error',
+        text1: 'Customer Only',
+        text2: 'Ordering is available only for customer accounts.',
+      });
+      return;
+    }
+
     if (!address.trim()) {
       Toast.show({
         type: 'error',
@@ -170,6 +184,35 @@ const Checkout = ({ navigation }) => {
       setLoading(false);
     }
   };
+
+  if (isNonCustomer) {
+    return (
+      <View style={[styles.container, { paddingTop: insets.top + spacing.lg }]}>
+        <View style={styles.header}>
+          <Pressable
+            style={styles.backButton}
+            onPress={() =>
+              navigation.canGoBack()
+                ? navigation.goBack()
+                : navigation.navigate('Home')
+            }
+          >
+            <Icon name="arrow-left" size={22} color={colors.text} />
+          </Pressable>
+          <Text style={styles.headerTitle}>Checkout</Text>
+          <View style={styles.placeholder} />
+        </View>
+
+        <View style={styles.nonCustomerWrap}>
+          <Text style={styles.sectionTitle}>Customer Only</Text>
+          <Text style={styles.nonCustomerText}>
+            Owner/Admin accounts can’t place orders. Switch to a customer account to
+            checkout.
+          </Text>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <KeyboardAvoidingView
@@ -390,7 +433,6 @@ const Checkout = ({ navigation }) => {
         </Pressable>
       </View>
 
-      <Toast />
     </KeyboardAvoidingView>
   );
 };
@@ -450,6 +492,16 @@ const styles = StyleSheet.create({
     ...typography.h3,
     color: colors.text,
     marginBottom: spacing.sm,
+  },
+
+  nonCustomerWrap: {
+    padding: spacing.lg,
+  },
+
+  nonCustomerText: {
+    ...typography.sub,
+    color: colors.muted,
+    marginTop: 8,
   },
 
   /* Input Cards */

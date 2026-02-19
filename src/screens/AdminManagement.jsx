@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -51,17 +51,17 @@ const AdminManagement = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     const res = await api.get('/admin/users');
     setUsers(res?.data?.users || []);
-  };
+  }, []);
 
-  const fetchRestaurants = async () => {
+  const fetchRestaurants = useCallback(async () => {
     const res = await api.get('/admin/restaurants');
     setRestaurants(res?.data?.restaurants || []);
-  };
+  }, []);
 
-  const loadAll = async ({ silent = false } = {}) => {
+  const loadAll = useCallback(async ({ silent = false } = {}) => {
     try {
       if (!silent) setLoading(true);
       await Promise.all([fetchUsers(), fetchRestaurants()]);
@@ -75,11 +75,11 @@ const AdminManagement = () => {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [fetchRestaurants, fetchUsers]);
 
   useEffect(() => {
     loadAll();
-  }, []);
+  }, [loadAll]);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -91,7 +91,7 @@ const AdminManagement = () => {
           text2: error?.response?.data?.message || 'Please try again',
         });
       });
-    }, [user?.role]),
+    }, [fetchRestaurants, fetchUsers, user?.role]),
   );
 
   const filteredUsers = useMemo(() => {
@@ -331,7 +331,7 @@ const AdminManagement = () => {
           keyExtractor={(item, index) => item?._id || String(index)}
           renderItem={isUsersTab ? renderUserItem : renderRestaurantItem}
           contentContainerStyle={styles.listContent}
-          ItemSeparatorComponent={() => <View style={styles.separator} />}
+          ItemSeparatorComponent={ListSeparator}
           refreshing={refreshing}
           onRefresh={() => {
             setRefreshing(true);
@@ -351,6 +351,8 @@ const AdminManagement = () => {
 };
 
 export default AdminManagement;
+
+const ListSeparator = () => <View style={styles.separator} />;
 
 const styles = StyleSheet.create({
   screen: {

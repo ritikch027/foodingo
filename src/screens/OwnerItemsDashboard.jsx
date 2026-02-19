@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, useContext } from 'react';
+import React, { useCallback, useEffect, useMemo, useState, useContext } from 'react';
 import {
   View,
   Text,
@@ -19,6 +19,14 @@ import { UserContext } from '../utils/userContext';
 import ImagePickerComponent from '../utils/ImagePicker';
 import { colors, radii, spacing, typography, shadows } from '../theme';
 
+const OwnerItemsEmptyState = () => (
+  <View style={styles.emptyWrap}>
+    <Icon name="package" size={56} color={colors.muted} />
+    <Text style={styles.emptyTitle}>No items yet</Text>
+    <Text style={styles.emptyText}>Add items from the owner menu to get started.</Text>
+  </View>
+);
+
 const OwnerItemsDashboard = ({ navigation }) => {
   const { user, foodItems, fetchCategories } = useContext(UserContext);
   const restaurantId = user?.restaurant;
@@ -36,9 +44,10 @@ const OwnerItemsDashboard = ({ navigation }) => {
     navigation?.navigate?.('Home');
   };
 
-  const fetchItems = async () => {
+  const fetchItems = useCallback(async () => {
     if (!restaurantId) return;
     try {
+      setLoading(true);
       const res = await api.get(`/items/restaurant/${restaurantId}`);
       setItems(res.data.items || []);
     } catch (error) {
@@ -50,15 +59,15 @@ const OwnerItemsDashboard = ({ navigation }) => {
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchItems();
   }, [restaurantId]);
 
   useEffect(() => {
+    fetchItems();
+  }, [fetchItems]);
+
+  useEffect(() => {
     fetchCategories();
-  }, []);
+  }, [fetchCategories]);
 
   const openEdit = item => {
     setEditingItem({
@@ -170,15 +179,7 @@ const OwnerItemsDashboard = ({ navigation }) => {
     }
   };
 
-  const EmptyState = () => (
-    <View style={styles.emptyWrap}>
-      <Icon name="package" size={56} color={colors.muted} />
-      <Text style={styles.emptyTitle}>No items yet</Text>
-      <Text style={styles.emptyText}>
-        Add items from the owner menu to get started.
-      </Text>
-    </View>
-  );
+
 
   const renderItem = ({ item }) => (
     <View style={styles.card}>
@@ -272,7 +273,7 @@ const OwnerItemsDashboard = ({ navigation }) => {
         data={filteredItems}
         keyExtractor={item => item._id}
         contentContainerStyle={styles.listContent}
-        ListEmptyComponent={!loading ? <EmptyState /> : null}
+        ListEmptyComponent={!loading ? <OwnerItemsEmptyState /> : null}
         renderItem={renderItem}
       />
 
@@ -562,7 +563,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.info,
     paddingHorizontal: spacing.md,
     paddingVertical: 8,
     borderRadius: radii.md,

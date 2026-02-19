@@ -17,13 +17,13 @@ const ItemCard = ({ item, cartItem, onAdd, index = 0 }) => {
         <View
           style={[
             styles.vegMarkOuter,
-            { borderColor: item.isVeg ? '#16A34A' : '#DC2626' },
+            item.isVeg ? styles.vegMarkOuterVeg : styles.vegMarkOuterNonVeg,
           ]}
         >
           <View
             style={[
               styles.vegMarkInner,
-              { backgroundColor: item.isVeg ? '#16A34A' : '#DC2626' },
+              item.isVeg ? styles.vegMarkInnerVeg : styles.vegMarkInnerNonVeg,
             ]}
           />
         </View>
@@ -196,6 +196,18 @@ const styles = StyleSheet.create({
     width: 9,
     height: 9,
     borderRadius: 999,
+  },
+  vegMarkOuterVeg: {
+    borderColor: '#16A34A',
+  },
+  vegMarkOuterNonVeg: {
+    borderColor: '#DC2626',
+  },
+  vegMarkInnerVeg: {
+    backgroundColor: '#16A34A',
+  },
+  vegMarkInnerNonVeg: {
+    backgroundColor: '#DC2626',
   },
 
   metaActions: {

@@ -8,7 +8,7 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { colors, radii, spacing, typography, shadows } from '../theme';
+import { colors, spacing, typography, shadows } from '../theme';
 
 const Loader = () => {
   const rotate = useSharedValue(0);
@@ -21,7 +21,7 @@ const Loader = () => {
     );
 
     scale.value = withRepeat(withTiming(1.05, { duration: 800 }), -1, true);
-  }, []);
+  }, [rotate, scale]);
 
   const rotateStyle = useAnimatedStyle(() => ({
     transform: [{ rotate: `${rotate.value}deg` }, { scale: scale.value }],

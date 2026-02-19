@@ -7,18 +7,17 @@ import {
   SafeAreaView,
   ScrollView,
   Pressable,
-  Alert,
 } from 'react-native';
 
 import { UserContext } from '../utils/userContext';
+import { useConfirm } from '../utils/confirm';
+import { showSnack, showSimpleToast } from '../utils/toast';
 import Icon from 'react-native-vector-icons/Feather';
-import api from '../utils/api';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import Toast from 'react-native-toast-message';
 import { colors, radii, spacing, typography, shadows } from '../theme';
 
 const Profile = ({ navigation }) => {
-  const { user, setIsLoggedIn } = useContext(UserContext);
+  const { user, logout } = useContext(UserContext);
+  const confirm = useConfirm();
 
   if (!user) {
     return (
@@ -34,57 +33,24 @@ const Profile = ({ navigation }) => {
   /* ---------------- ACTIONS ---------------- */
 
   const handleLogout = async () => {
-    Alert.alert('Logout', 'Are you sure you want to logout?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Logout',
-        style: 'destructive',
-        onPress: async () => {
-          await AsyncStorage.removeItem('token');
-          setIsLoggedIn(false);
-        },
-      },
-    ]);
-  };
+    const ok = await confirm({
+      title: 'Logout',
+      message: 'Are you sure you want to logout?',
+      confirmText: 'Logout',
+      cancelText: 'Cancel',
+      destructive: true,
+    });
 
-  const handleDeleteRestaurant = async () => {
-    Alert.alert(
-      'Delete Restaurant',
-      'Are you sure you want to delete your restaurant?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await api.delete(`/restaurant/delete/${user.restaurant}`);
-
-              Toast.show({
-                type: 'success',
-                text1: 'Restaurant deleted successfully',
-              });
-
-              navigation.replace('HomeWithDrawer');
-            } catch (err) {
-              Toast.show({
-                type: 'error',
-                text1: 'Delete failed',
-                text2: 'Could not delete restaurant',
-              });
-            }
-          },
-        },
-      ],
-    );
+    if (!ok) return;
+    await logout();
+    showSimpleToast('Logged out');
   };
 
   const menuOptions = [
     {
       title: 'Notifications',
       icon: 'bell',
-      onPress: () =>
-        Alert.alert('Coming Soon', 'Notifications feature coming soon!'),
+      onPress: () => showSnack('Notifications are cooking. Coming soon!'),
     },
     {
       title: 'Settings',
@@ -95,11 +61,6 @@ const Profile = ({ navigation }) => {
       title: 'Register your restaurant',
       icon: 'plus',
       onPress: () => navigation.navigate('AddRestaurant'),
-    },
-    (user.role === 'owner' || user.role === 'admin') && {
-      title: 'Delete restaurant',
-      icon: 'trash-2',
-      onPress: handleDeleteRestaurant,
     },
   ].filter(Boolean);
 

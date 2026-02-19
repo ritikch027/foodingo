@@ -10,7 +10,7 @@ import {
 
 import api from '../utils/api';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useState, useEffect, useContext, useCallback } from 'react';
+import { useState, useEffect, useContext, useCallback, useMemo } from 'react';
 import RenderCategories from '../components/RenderCategories';
 import Fontisto from 'react-native-vector-icons/Fontisto';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -25,77 +25,21 @@ import { colors, radii, spacing, typography, shadows, motion } from '../theme';
 
 const FILTERS = ['Fast Delivery', 'Top Rated', 'Nearby'];
 
-const Home = ({ navigation }) => {
-  const insets = useSafeAreaInsets();
-  const { user, setUser, mappedItems, fetchCategories } =
-    useContext(UserContext);
-  const firstName = user?.name?.trim()?.split(/\s+/)?.[0] || 'Guest';
+const HomeHeader = ({
+  insetsTop,
+  navigation,
+  totalItems,
+  firstName,
+  activeFilter,
+  onSelectFilter,
+}) => {
+  const headerTopRowStyle = useMemo(() => {
+    return [styles.headerTopRow, { marginTop: insetsTop }];
+  }, [insetsTop]);
 
-  const totalItems = mappedItems.reduce((sum, item) => sum + item.quantity, 0);
-
-  const [loading, setLoading] = useState(true);
-  const [offers, setOffers] = useState([]);
-  const [restaurants, setRestaurants] = useState([]);
-  const [activeFilter, setActiveFilter] = useState(FILTERS[0]);
-
-  /* ---------------- API ---------------- */
-
-  const fetchOffers = async () => {
-    try {
-      const res = await api.get('/offers');
-      setOffers(res.data);
-    } catch (err) {
-      console.log('Offers API error:', err.message);
-    }
-  };
-
-  const fetchRestaurants = async () => {
-    try {
-      const res = await api.get('/restaurants');
-      setRestaurants(res.data.restaurants);
-    } catch (err) {
-      console.log('Restaurants API error:', err.message);
-    }
-  };
-
-  const fetchUser = async () => {
-    try {
-      const token = await AsyncStorage.getItem('token');
-      if (!token) return;
-
-      const res = await api.get('/userdata');
-      if (res.data?.user) {
-        setUser(res.data?.user);
-      }
-    } catch (err) {
-      console.log('User API error:', err.message);
-    }
-  };
-
-  /* ---------------- BOOT ---------------- */
-
-  useEffect(() => {
-    let mounted = true;
-    const boot = async () => {
-      try {
-        await fetchRestaurants();
-        await fetchUser();
-        await fetchCategories();
-      } catch (err) {
-        console.log('Boot error:', err);
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    };
-    boot();
-    return () => (mounted = false);
-  }, []);
-
-  /* ---------------- UI ---------------- */
-
-  const HeaderTop = () => (
+  return (
     <View>
-      <View style={[styles.headerTopRow, { marginTop: insets.top }]}>
+      <View style={headerTopRowStyle}>
         <Pressable
           onPress={() => navigation.openDrawer()}
           style={({ pressed }) => [styles.iconBtn, pressed && { opacity: 0.7 }]}
@@ -133,12 +77,10 @@ const Home = ({ navigation }) => {
           return (
             <Pressable
               key={filter}
-              onPress={() => setActiveFilter(filter)}
+              onPress={() => onSelectFilter(filter)}
               style={[styles.chip, isActive && styles.chipActive]}
             >
-              <Text
-                style={[styles.chipText, isActive && styles.chipTextActive]}
-              >
+              <Text style={[styles.chipText, isActive && styles.chipTextActive]}>
                 {filter}
               </Text>
             </Pressable>
@@ -147,10 +89,74 @@ const Home = ({ navigation }) => {
       </View>
 
       <Text style={styles.sectionTitle}>What are you craving?</Text>
+      <RenderCategories />
+
+      <Text style={[styles.sectionTitle, styles.sectionTitleAlt]}>
+        Grab from your favorite restaurant...
+      </Text>
     </View>
   );
+};
 
-  const HeaderSticky = () => <RenderCategories />;
+const Home = ({ navigation }) => {
+  const insets = useSafeAreaInsets();
+  const { user, setUser, mappedItems, fetchCategories } =
+    useContext(UserContext);
+  const firstName = user?.name?.trim()?.split(/\s+/)?.[0] || 'Guest';
+
+  const totalItems = mappedItems.reduce((sum, item) => sum + item.quantity, 0);
+
+  const [loading, setLoading] = useState(true);
+  const [restaurants, setRestaurants] = useState([]);
+  const [activeFilter, setActiveFilter] = useState(FILTERS[0]);
+
+  /* ---------------- API ---------------- */
+
+  const fetchRestaurants = useCallback(async () => {
+    try {
+      const res = await api.get('/restaurants');
+      setRestaurants(res.data.restaurants);
+    } catch (err) {
+      console.log('Restaurants API error:', err.message);
+    }
+  }, []);
+
+  const fetchUser = useCallback(async () => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      if (!token) return;
+
+      const res = await api.get('/userdata');
+      if (res.data?.user) {
+        setUser(res.data?.user);
+      }
+    } catch (err) {
+      console.log('User API error:', err.message);
+    }
+  }, [setUser]);
+
+  /* ---------------- BOOT ---------------- */
+
+  useEffect(() => {
+    let mounted = true;
+    const boot = async () => {
+      try {
+        await fetchRestaurants();
+        await fetchUser();
+        await fetchCategories();
+      } catch (err) {
+        console.log('Boot error:', err);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+    boot();
+    return () => (mounted = false);
+  }, [fetchCategories, fetchRestaurants, fetchUser]);
+
+  const listContentStyle = useMemo(() => {
+    return { paddingBottom: insets.bottom + spacing.xl };
+  }, [insets.bottom]);
 
   const renderItem = useCallback(
     ({ item, index }) => (
@@ -223,24 +229,23 @@ const Home = ({ navigation }) => {
     <View style={styles.container}>
       <FlatList
         data={restaurants}
-        ListHeaderComponent={() => (
-          <View>
-            <HeaderTop />
-            <HeaderSticky />
-            <Text style={styles.sectionTitle}>
-              Grab from your favorite restaurant...
-            </Text>
-          </View>
-        )}
+        ListHeaderComponent={
+          <HomeHeader
+            insetsTop={insets.top}
+            navigation={navigation}
+            totalItems={totalItems}
+            firstName={firstName}
+            activeFilter={activeFilter}
+            onSelectFilter={setActiveFilter}
+          />
+        }
         keyExtractor={item => item._id}
         showsVerticalScrollIndicator={false}
         initialNumToRender={6}
         maxToRenderPerBatch={8}
         windowSize={7}
         removeClippedSubviews
-        contentContainerStyle={{
-          paddingBottom: insets.bottom + spacing.xl,
-        }}
+        contentContainerStyle={listContentStyle}
         renderItem={renderItem}
       />
     </View>
@@ -298,6 +303,9 @@ const styles = StyleSheet.create({
     marginTop: spacing.lg,
     marginLeft: spacing.lg,
     marginBottom: spacing.sm,
+  },
+  sectionTitleAlt: {
+    marginTop: spacing.lg,
   },
 
   /* ---------- SEARCH ---------- */

@@ -10,7 +10,7 @@ import { CropView } from 'react-native-image-crop-tools';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { colors, radii, spacing, typography, shadows } from '../theme';
+import { colors, radii, spacing, typography } from '../theme';
 
 export default function MyCropScreen({ navigation }) {
   const insets = useSafeAreaInsets();
@@ -40,7 +40,7 @@ export default function MyCropScreen({ navigation }) {
 
         <Text style={styles.title}>Crop Image</Text>
 
-        <View style={{ width: 26 }} />
+        <View style={styles.headerSpacer} />
       </View>
 
       {!uri && (
@@ -109,6 +109,10 @@ const styles = StyleSheet.create({
   title: {
     ...typography.h3,
     color: colors.text,
+  },
+
+  headerSpacer: {
+    width: 26,
   },
 
   center: {

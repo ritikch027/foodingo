@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View, Pressable } from 'react-native';
 import ItemsGrid from '../components/ItemsGrid';
 import { useRoute } from '@react-navigation/native';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import api from '../utils/api';
 import Loader from '../utils/Loader';
@@ -17,7 +17,8 @@ const CategoryItem = ({ navigation }) => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchItemByCategory = async () => {
+  const fetchItemByCategory = useCallback(async () => {
+    setLoading(true);
     try {
       const res = await api.get(
         `/items/category/${encodeURIComponent(category)}`,
@@ -34,11 +35,11 @@ const CategoryItem = ({ navigation }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [category]);
 
   useEffect(() => {
     fetchItemByCategory();
-  }, []);
+  }, [fetchItemByCategory]);
 
   if (loading) return <Loader />;
 
@@ -65,8 +66,6 @@ const CategoryItem = ({ navigation }) => {
 
       {/* Items Grid */}
       <ItemsGrid items={items} />
-
-      <Toast />
     </View>
   );
 };

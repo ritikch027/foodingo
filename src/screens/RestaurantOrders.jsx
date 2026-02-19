@@ -463,10 +463,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   prepareBtn: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.warning,
   },
   deliverBtn: {
-    backgroundColor: colors.accent,
+    backgroundColor: colors.info,
   },
   prepareBtnText: {
     color: colors.surface,

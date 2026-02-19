@@ -1,226 +1,194 @@
+﻿# Foodingo 🍔📱 - Food Delivery App (React Native)
+
+![React Native](https://img.shields.io/badge/React%20Native-0.80.x-61DAFB?logo=react&logoColor=000)
+![Android](https://img.shields.io/badge/Android-Supported-3DDC84?logo=android&logoColor=fff)
+![iOS](https://img.shields.io/badge/iOS-Supported-000000?logo=apple&logoColor=fff)
+![Node](https://img.shields.io/badge/Node-%3E%3D18-339933?logo=node.js&logoColor=fff)
+![License](https://img.shields.io/badge/License-MIT-blue)
+
+Foodingo is a modern food delivery mobile app built with **React Native CLI**. It includes a customer experience (browse, cart, checkout), an owner experience (restaurant + menu management), and admin-style management screens.
+
 ---
 
-# 🍔 Foodingo — Food Delivery Mobile App (React Native)
+## ✨ Highlights
 
-Foodingo is a modern food delivery mobile application built using **React Native CLI** with a complete customer and restaurant-owner experience. It supports restaurant onboarding, menu management, cart, checkout, user authentication, and a clean admin-style dashboard.
+- 🔐 Auth + session persistence (AsyncStorage)
+- 🏪 Restaurant onboarding (owner flow)
+- 🧾 Cart + checkout (COD + Razorpay online payments)
+- 🖼️ Image upload + crop (Cloudinary)
+- 🧭 Stack + Drawer navigation
+- 🎬 Smooth animations (Reanimated) + custom loader
 
 ---
 
 ## 🚀 Features
 
-### 👤 User Features
+### 👤 Customer
 
-* User authentication (Login & Register)
-* Browse restaurants
-* Browse food categories
-* View restaurant menus
-* Add items to cart
-* Update item quantities
-* View cart summary
-* Checkout flow
-* Profile management
-* Order history (coming soon)
+- Login / Register
+- Browse restaurants, categories, menus
+- Add to cart, update quantities
+- Checkout flow
+- Profile
+- Orders (screen included; backend support may vary)
 
-### 🏪 Restaurant Owner Features
+### 🏪 Restaurant Owner
 
-* Register restaurant
-* Upload restaurant banner
-* Add menu items
-* Upload item images (Cloudinary)
-* Assign categories
-* Set discounts
-* Veg / Non-Veg classification
-* Admin dashboard
+- Register restaurant + upload banner
+- Add menu items + upload item images
+- Set categories, discounts, veg/non-veg
 
-### 🎨 UI & UX
+### 🎨 UI/UX
 
-* Clean modern UI
-* Reanimated animations
-* Drawer navigation
-* Premium admin layout
-* Image picker & cropper
-* Responsive grid layout
-* Beautiful cart UI
-* Toast notifications
-* Smooth splash screen
+- Clean, modern UI
+- Toast notifications
+- Animated loader + pleasant empty/error states
 
 ---
 
-## 🛠 Tech Stack
+## 🧰 Tech Stack
 
-| Tech              | Description               |
-| ----------------- | ------------------------- |
-| React Native CLI  | Mobile framework          |
-| React Navigation  | Stack & Drawer navigation |
-| Reanimated        | Animations                |
-| Axios             | API calls                 |
-| AsyncStorage      | Local storage             |
-| Cloudinary        | Image hosting             |
-| Image Crop Picker | Image upload              |
-| Context API       | Global state              |
-| Toast Message     | Notifications             |
-
----
-
-## 📱 Screens
-
-* Splash Loader
-* Login
-* Register
-* Home (Offers + Categories + Restaurants)
-* Restaurant Menu
-* Category Items
-* Cart
-* Profile
-* Add Restaurant (Owner)
-* Add Items (Owner)
-* Add Categories (Admin)
-* Drawer Menu
+| Tool / Library | Why it's used |
+|---|---|
+| React Native CLI | Native mobile app framework |
+| React Navigation | Stack + Drawer navigation |
+| Axios | API requests |
+| AsyncStorage | Token/session storage |
+| Reanimated | Animations |
+| react-native-vector-icons | Icons |
+| react-native-image-crop-picker | Image picking + cropping |
+| Cloudinary | Image hosting |
+| Razorpay | Online payments |
 
 ---
 
-## 🏗 Folder Structure
+## 🖼️ Screenshots (attach later)
 
-```
+When you're ready, add screenshots under `docs/screenshots/` and update the links below.
+
+| Splash | Home | Cart |
+|---|---|---|
+| ![Splash](docs/screenshots/splash.png) | ![Home](docs/screenshots/home.png) | ![Cart](docs/screenshots/cart.png) |
+
+| Profile | Owner: Add Restaurant | Checkout |
+|---|---|---|
+| ![Profile](docs/screenshots/profile.png) | ![Add Restaurant](docs/screenshots/add-restaurant.png) | ![Checkout](docs/screenshots/checkout.png) |
+
+---
+
+## 🏗️ Project Structure
+
+```text
 src/
- ├── auth components/
- │    ├── Login.jsx
- │    └── Register.jsx
- ├── components/
- │    ├── Cart.jsx
- │    ├── Profile.jsx
- │    ├── RestaurantItems.jsx
- │    ├── CategoryItem.jsx
- │    └── ...
- ├── additionComponents/
- │    ├── AddRestaurant.jsx
- │    ├── AddItem.jsx
- │    └── AddCategory.jsx
- ├── navigators/
- │    └── HomewithDrawer.jsx
- ├── utils/
- │    ├── api.js
- │    ├── userContext.js
- │    ├── GenericForm.jsx
- │    ├── ImagePicker.jsx
- │    ├── Loader.jsx
- │    └── counter.jsx
- └── App.js
+  auth components/
+    Login.jsx
+    Register.jsx
+  components/
+    Cart.jsx
+    CategoryItem.jsx
+    Profile.jsx
+    RestaurantItems.jsx
+    ...
+  navigators/
+    HomewithDrawer.jsx
+  screens/
+    Checkout.jsx
+    MyOrders.jsx
+    OrderDetails.jsx
+    OrderSuccess.jsx
+    RestaurantOrders.jsx
+    Settings.jsx
+  utils/
+    api.jsx
+    userContext.jsx
+    ImagePicker.jsx
+    Loader.jsx
 ```
 
 ---
 
-## 🔐 Authentication
+## 🔌 Backend / API
 
-* JWT based authentication
-* Token stored securely in AsyncStorage
-* Auto-login using saved session
-* Secure API interceptor
+Default base URL is set in `src/utils/api.jsx`:
 
----
-
-## 🌐 API Integration
-
-Backend API:
-
-```
+```txt
 https://foodingo-backend-8ay1.onrender.com/api
 ```
 
-Main endpoints:
+If you're running your own backend, update the `baseURL` in `src/utils/api.jsx`.
 
-* `/login-user`
-* `/register`
-* `/restaurants`
-* `/items/:restaurantId`
-* `/items/category/:category`
-* `/cart`
-* `/cart/add`
-* `/cart/increment`
-* `/cart/decrement`
-* `/categories`
+Note: there is a `.env` with `BASE_URL`, but the app currently uses the hardcoded `baseURL` above (keep them in sync if you use both).
+
+### 💤 Cold-start note (Render)
+
+If the backend is sleeping, the app may show a "kitchen is warming up" screen for a few seconds. Just hit **Retry**.
 
 ---
 
-## 🖼 Image Upload
+## 🖼️ Image Upload (Cloudinary)
 
-* Cloudinary integration
-* Image cropping
-* Banner & square image support
-* Automatic upload & preview
+Cloudinary config is currently hardcoded in `src/utils/ImagePicker.jsx`:
+
+- `cloudName`
+- `uploadPreset`
+
+Replace these with your own Cloudinary details for production.
 
 ---
 
-## ⚙️ Installation
+## 💳 Payments (Razorpay)
 
-### 1️⃣ Clone the repository
+Checkout supports **COD** and **Online (Razorpay)**. Online payments depend on backend endpoints to create and verify Razorpay orders.
 
-```bash
-git clone https://github.com/ritikch027/foodingo-.git
-cd foodingo
-```
+---
 
-### 2️⃣ Install dependencies
+## ⚙️ Setup & Run
+
+### Prerequisites
+
+- Node.js `>= 18`
+- React Native CLI environment set up (Android Studio / Xcode)
+- CocoaPods (iOS): `sudo gem install cocoapods` (if needed)
+
+### Install
 
 ```bash
 npm install
 ```
 
-### 3️⃣ Install pods (iOS)
+### iOS pods
 
 ```bash
 cd ios && pod install && cd ..
 ```
 
-### 4️⃣ Run the app
-
-#### Android
+### Run
 
 ```bash
-npx react-native run-android
+# Android
+npm run android
+
+# iOS
+npm run ios
 ```
 
-#### iOS
+### Useful scripts
 
 ```bash
-npx react-native run-ios
+npm run start
+npm run lint
+npm test
 ```
 
 ---
 
-## 🔑 Environment Setup
+## 🗺️ Roadmap
 
-Make sure you have:
-
-* Node.js >= 16
-* Android Studio
-* Xcode (for iOS)
-* React Native CLI
-* Emulator or real device
-
----
-
-## 🧠 Architecture
-
-* Global state using Context API
-* Central API service
-* Reusable GenericForm system
-* Modular component design
-* Scalable navigation system
-* Optimized API requests
-
----
-
-## ✨ Future Enhancements
-
-* Online payments (Razorpay / Stripe)
-* Order tracking
-* Push notifications
-* Live delivery tracking
-* Dark mode
-* Admin analytics dashboard
-* Reviews & ratings
-* Favorites
+- ⭐ Favorites + ratings/reviews
+- 🔔 Push notifications
+- 📍 Live order tracking
+- 🌙 Dark mode
+- 📊 Admin analytics
 
 ---
 
@@ -232,19 +200,4 @@ Built with ❤️ by **Ritik Chauhan**
 
 ## 📄 License
 
-This project is licensed under the MIT License.
-
----
-
-## ⭐ Support
-
-If you like this project, give it a star ⭐
-It helps a lot!
-
----
-
-## 📸 App Preview
-(to be added)
-
----
-
+MIT

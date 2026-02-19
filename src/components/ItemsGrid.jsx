@@ -11,7 +11,7 @@ const ItemsGrid = ({ items, contentPaddingBottom = 160 }) => {
   const insets = useSafeAreaInsets();
   const { getCartData, mappedItems } = useContext(UserContext);
 
-  const addToCart = async item => {
+  const addToCart = useCallback(async item => {
     try {
       const product = {
         productId: item._id,
@@ -44,11 +44,11 @@ const ItemsGrid = ({ items, contentPaddingBottom = 160 }) => {
         }),
       });
     }
-  };
+  }, [getCartData]);
 
   const renderItem = useCallback(
     ({ item, index }) => {
-      const cartItem = mappedItems.find(cartItem => cartItem._id === item._id);
+      const cartItem = mappedItems.find(ci => ci._id === item._id);
 
       return (
         <ItemCard
@@ -59,7 +59,7 @@ const ItemsGrid = ({ items, contentPaddingBottom = 160 }) => {
         />
       );
     },
-    [mappedItems],
+    [mappedItems, addToCart],
   );
 
   return (

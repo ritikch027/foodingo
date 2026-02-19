@@ -1,18 +1,15 @@
-import { useEffect } from 'react';
+import { useCallback, useEffect, useContext } from 'react';
 import { Alert } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import api from '../utils/api';
-import { useContext } from 'react';
 import { UserContext } from '../utils/userContext';
 
 export const useBanDetection = () => {
   const navigation = useNavigation();
-  const setIsLoggedIn = useContext(UserContext);
-  const handleUserBanned = async () => {
+  const { logout } = useContext(UserContext);
+  const handleUserBanned = useCallback(async () => {
     try {
-      await AsyncStorage.removeItem('token');
-      await setIsLoggedIn(false);
+      await logout();
 
       Alert.alert('Account Suspended', 'Your account has been suspended.', [
         { text: 'OK' },
@@ -20,12 +17,12 @@ export const useBanDetection = () => {
 
       navigation.reset({
         index: 0,
-        routes: [{ name: 'login' }],
+        routes: [{ name: 'Login' }],
       });
     } catch (error) {
       console.log('Error handling ban:', error);
     }
-  };
+  }, [logout, navigation]);
 
   useEffect(() => {
     const responseInterceptor = api.interceptors.response.use(
@@ -44,5 +41,5 @@ export const useBanDetection = () => {
     return () => {
       api.interceptors.response.eject(responseInterceptor);
     };
-  }, []);
+  }, [handleUserBanned]);
 };

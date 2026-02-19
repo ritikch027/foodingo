@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import {
   StyleSheet,
   Text,
@@ -14,7 +14,28 @@ import OrderCard from '../components/OrderCard';
 import api from '../utils/api';
 import Toast from 'react-native-toast-message';
 import Loader from '../utils/Loader';
+import { UserContext } from '../utils/userContext';
 import { colors, radii, spacing, typography, shadows, motion } from '../theme';
+
+const OrdersEmptyState = ({ activeFilter, navigation }) => (
+  <View style={styles.emptyContainer}>
+    <View style={styles.emptyIconContainer}>
+      <Icon name="package" size={54} color={colors.muted} />
+    </View>
+    <Text style={styles.emptyTitle}>No Orders Yet</Text>
+    <Text style={styles.emptySubtitle}>
+      {activeFilter === 'All'
+        ? 'Start ordering your favorite food!'
+        : `No ${activeFilter.toLowerCase()} orders`}
+    </Text>
+    <Pressable
+      style={styles.browseButton}
+      onPress={() => navigation.navigate('HomeWithDrawer')}
+    >
+      <Text style={styles.browseButtonText}>Browse Restaurants</Text>
+    </Pressable>
+  </View>
+);
 
 const normalizeStatus = status => {
   const value = String(status || '')
@@ -30,12 +51,18 @@ const normalizeStatus = status => {
 
 const MyOrders = ({ navigation }) => {
   const insets = useSafeAreaInsets();
+  const { user } = useContext(UserContext);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [activeFilter, setActiveFilter] = useState('All');
 
   const filterOptions = ['All', 'Preparing', 'On the way', 'Delivered'];
+
+  const role = String(user?.role || '')
+    .toLowerCase()
+    .trim();
+  const isNonCustomer = Boolean(role) && role !== 'customer';
 
   const fetchOrders = async () => {
     try {
@@ -103,25 +130,27 @@ const MyOrders = ({ navigation }) => {
       ? orders
       : orders.filter(order => normalizeStatus(order.status) === activeFilter);
 
-  const EmptyState = () => (
-    <View style={styles.emptyContainer}>
-      <View style={styles.emptyIconContainer}>
-        <Icon name="package" size={54} color={colors.muted} />
+  if (isNonCustomer) {
+    return (
+      <View style={[styles.container, { paddingTop: insets.top + 10 }]}>
+        <View style={styles.emptyContainer}>
+          <View style={styles.emptyIconContainer}>
+            <Icon name="shield" size={54} color={colors.muted} />
+          </View>
+          <Text style={styles.emptyTitle}>Customer Only</Text>
+          <Text style={styles.emptySubtitle}>
+            Order history is available only for customer accounts.
+          </Text>
+          <Pressable
+            style={styles.browseButton}
+            onPress={() => navigation.navigate('Home')}
+          >
+            <Text style={styles.browseButtonText}>Go to Dashboard</Text>
+          </Pressable>
+        </View>
       </View>
-      <Text style={styles.emptyTitle}>No Orders Yet</Text>
-      <Text style={styles.emptySubtitle}>
-        {activeFilter === 'All'
-          ? 'Start ordering your favorite food!'
-          : `No ${activeFilter.toLowerCase()} orders`}
-      </Text>
-      <Pressable
-        style={styles.browseButton}
-        onPress={() => navigation.navigate('HomeWithDrawer')}
-      >
-        <Text style={styles.browseButtonText}>Browse Restaurants</Text>
-      </Pressable>
-    </View>
-  );
+    );
+  }
 
   if (loading) return <Loader />;
 
@@ -194,7 +223,9 @@ const MyOrders = ({ navigation }) => {
             tintColor={colors.primary}
           />
         }
-        ListEmptyComponent={<EmptyState />}
+        ListEmptyComponent={
+          <OrdersEmptyState activeFilter={activeFilter} navigation={navigation} />
+        }
         renderItem={({ item, index }) => (
           <OrderCard
             restaurantName={item.restaurantName || 'Restaurant'}
@@ -214,8 +245,6 @@ const MyOrders = ({ navigation }) => {
           />
         )}
       />
-
-      <Toast />
     </View>
   );
 };

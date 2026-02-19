@@ -1,5 +1,4 @@
 import {
-  ActivityIndicator,
   StatusBar,
   StyleSheet,
   Text,
@@ -29,6 +28,9 @@ import OrderDetails from './src/screens/OrderDetails';
 import Settings from './src/screens/Settings';
 import { colors, spacing, typography } from './src/theme';
 import api from './src/utils/api';
+import Loader from './src/utils/Loader';
+import { toastConfig } from './src/utils/toastConfig';
+import { ConfirmProvider } from './src/utils/confirm';
 
 const Stack = createNativeStackNavigator();
 
@@ -36,11 +38,14 @@ const Stack = createNativeStackNavigator();
 
 const ServerErrorScreen = ({ onRetry }) => (
   <View style={styles.serverErrorContainer}>
-    <Text style={styles.serverErrorTitle}>Server is waking up</Text>
+    <Text style={styles.serverErrorTitle}>Hang tight - our kitchen is warming up</Text>
     <Text style={styles.serverErrorText}>
-      Foodingo backend is not responding yet. Please retry in a few seconds.
+      The Foodingo server is waking up from a quick nap. Give it a moment, then tap
+      retry.
     </Text>
-    <Text style={styles.serverErrorSubText}>Try after sometime.</Text>
+    <Text style={styles.serverErrorSubText}>
+      If it takes longer, it's probably dreaming about biryani.
+    </Text>
 
     <Pressable
       onPress={onRetry}
@@ -101,11 +106,8 @@ const AppNavigation = () => {
   // Smooth splash loader
   if (booting || isLoggedIn === null || (isLoggedIn && !serverReady && !serverError)) {
     return (
-      <Animated.View entering={FadeIn} style={styles.loader}>
-        <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={styles.loaderText}>
-          {isLoggedIn ? 'Connecting to Foodingo server...' : 'Starting Foodingo...'}
-        </Text>
+      <Animated.View entering={FadeIn} style={styles.fullFlex}>
+        <Loader />
       </Animated.View>
     );
   }
@@ -143,7 +145,7 @@ const AppNavigation = () => {
         )}
       </Stack.Navigator>
 
-      <Toast />
+      <Toast config={toastConfig} topOffset={56} bottomOffset={70} />
     </NavigationContainer>
   );
 };
@@ -153,9 +155,11 @@ const AppNavigation = () => {
 const App = () => {
   return (
     <SafeAreaProvider>
-      <GestureHandlerRootView style={{ flex: 1 }}>
+      <GestureHandlerRootView style={styles.fullFlex}>
         <UserProvider>
-          <AppNavigation />
+          <ConfirmProvider>
+            <AppNavigation />
+          </ConfirmProvider>
         </UserProvider>
       </GestureHandlerRootView>
     </SafeAreaProvider>
@@ -167,19 +171,9 @@ export default App;
 /* -------------------- STYLES -------------------- */
 
 const styles = StyleSheet.create({
-  loader: {
+  fullFlex: {
     flex: 1,
-    backgroundColor: colors.bg,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
-
-  loaderText: {
-    marginTop: spacing.sm,
-    ...typography.sub,
-    color: colors.muted,
-  },
-
   serverErrorContainer: {
     flex: 1,
     backgroundColor: colors.bg,

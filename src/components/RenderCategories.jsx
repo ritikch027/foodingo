@@ -4,7 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { FlatList, View, Text, Image, StyleSheet, Pressable } from 'react-native';
 
 import Animated, { FadeInRight, Layout } from 'react-native-reanimated';
-import { colors, radii, spacing, typography, shadows, motion } from '../theme';
+import { colors, spacing, typography, shadows, motion } from '../theme';
 
 const RenderCategories = () => {
   const navigation = useNavigation();

@@ -362,10 +362,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   banBtn: {
-    backgroundColor: '#B91C1C',
+    backgroundColor: colors.warning,
   },
   unbanBtn: {
-    backgroundColor: colors.accent,
+    backgroundColor: colors.info,
   },
   actionBtnText: {
     color: colors.surface,

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -31,6 +31,9 @@ const GenericForm = ({
   footerLink,
 }) => {
   const insets = useSafeAreaInsets();
+  const scrollContentStyle = useMemo(() => {
+    return [styles.container, { paddingBottom: insets.bottom + 120 }];
+  }, [insets.bottom]);
 
   const [formData, setFormData] = useState(() =>
     fields.reduce((acc, field) => {
@@ -168,15 +171,12 @@ const GenericForm = ({
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      style={{ flex: 1 }}
+      style={styles.fullFlex}
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={[
-            styles.container,
-            { paddingBottom: insets.bottom + 120 },
-          ]}
+          contentContainerStyle={scrollContentStyle}
         >
           {headingTxt ? <Text style={styles.heading}>{headingTxt}</Text> : null}
 
@@ -208,6 +208,9 @@ export default GenericForm;
 /* ---------------- STYLES ---------------- */
 
 const styles = StyleSheet.create({
+  fullFlex: {
+    flex: 1,
+  },
   container: {
     padding: spacing.lg,
     backgroundColor: colors.bg,

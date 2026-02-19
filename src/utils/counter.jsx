@@ -1,8 +1,8 @@
-import { StyleSheet, Text, View, Pressable, Dimensions } from 'react-native';
+import { StyleSheet, View, Pressable, Dimensions } from 'react-native';
 import React, { useContext, useEffect } from 'react';
 import { UserContext } from './userContext';
 import Entypo from 'react-native-vector-icons/Entypo';
-import { colors, radii, spacing, typography } from '../theme';
+import { colors, radii } from '../theme';
 
 import Animated, {
   useSharedValue,
@@ -21,7 +21,7 @@ const Counter = ({ item, compact = false }) => {
     scale.value = withSpring(1.2, { damping: 10 }, () => {
       scale.value = withSpring(1);
     });
-  }, [item.quantity]);
+  }, [item.quantity, scale]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],

@@ -9,7 +9,7 @@ import {
   Pressable,
 } from 'react-native';
 import Counter from '../utils/counter';
-import { useEffect, useState, useContext } from 'react';
+import { useMemo, useContext } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { UserContext } from '../utils/userContext';
 import Icon from 'react-native-vector-icons/Feather';
@@ -18,36 +18,58 @@ import { colors, radii, spacing, typography, shadows } from '../theme';
 export const screenWidth = Dimensions.get('window').width;
 export const screenHeight = Dimensions.get('window').height;
 
+const EmptyCart = () => (
+  <View style={styles.emptyContainer}>
+    <View style={styles.emptyIconContainer}>
+      <Icon name="shopping-cart" size={54} color={colors.muted} />
+    </View>
+    <Text style={styles.emptyTitle}>Your Cart is Empty</Text>
+    <Text style={styles.emptySubtitle}>Add some delicious items to get started</Text>
+  </View>
+);
+
 const Cart = ({ navigation }) => {
   const insets = useSafeAreaInsets();
-  const { mappedItems, cartItems } = useContext(UserContext);
+  const { mappedItems, user } = useContext(UserContext);
   const totalItems = mappedItems.reduce((sum, item) => sum + item.quantity, 0);
+  const total = useMemo(() => {
+    return mappedItems.reduce((sum, item) => {
+      const unitPrice = Number(item.offerPrice ?? item.price ?? 0);
+      const quantity = Number(item.quantity ?? 0);
+      return sum + unitPrice * quantity;
+    }, 0);
+  }, [mappedItems]);
 
-  const [total, setTotal] = useState(0);
+  const role = String(user?.role || '')
+    .toLowerCase()
+    .trim();
+  const isNonCustomer = Boolean(role) && role !== 'customer';
 
-  const getTotal = () => {
-    let tempTotal = 0;
-    mappedItems.forEach(element => {
-      tempTotal += element.offerPrice * element.quantity;
-    });
-    setTotal(tempTotal);
-  };
-
-  useEffect(() => {
-    getTotal();
-  }, [cartItems]);
-
-  const EmptyCart = () => (
-    <View style={styles.emptyContainer}>
-      <View style={styles.emptyIconContainer}>
-        <Icon name="shopping-cart" size={54} color={colors.muted} />
+  if (isNonCustomer) {
+    return (
+      <View style={[styles.container, { paddingTop: insets.top + 20 }]}>
+        <View style={styles.emptyContainer}>
+          <View style={styles.emptyIconContainer}>
+            <Icon name="shield" size={54} color={colors.muted} />
+          </View>
+          <Text style={styles.emptyTitle}>Customer Only</Text>
+          <Text style={styles.emptySubtitle}>
+            Ordering is available only for customer accounts.
+          </Text>
+          <Pressable
+            onPress={() => navigation.navigate('Home')}
+            style={({ pressed }) => [
+              styles.checkoutBtn,
+              pressed && { opacity: 0.85 },
+            ]}
+          >
+            <Text style={styles.checkoutText}>Go to Dashboard</Text>
+            <Icon name="arrow-right" size={18} color={colors.surface} />
+          </Pressable>
+        </View>
       </View>
-      <Text style={styles.emptyTitle}>Your Cart is Empty</Text>
-      <Text style={styles.emptySubtitle}>
-        Add some delicious items to get started
-      </Text>
-    </View>
-  );
+    );
+  }
 
   return (
     <View style={[styles.container, { paddingTop: insets.top + 20 }]}>
@@ -84,10 +106,7 @@ const Cart = ({ navigation }) => {
           <FlatList
             data={mappedItems}
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={[
-              styles.listContainer,
-              { paddingBottom: 140 },
-            ]}
+            contentContainerStyle={styles.listContainer}
             renderItem={({ item }) => (
               <View style={styles.itemContainer}>
                 <Image style={styles.cartImg} source={{ uri: item.image?.url }} />
@@ -212,6 +231,7 @@ const styles = StyleSheet.create({
   /* List */
   listContainer: {
     paddingHorizontal: spacing.lg,
+    paddingBottom: 140,
   },
 
   itemContainer: {

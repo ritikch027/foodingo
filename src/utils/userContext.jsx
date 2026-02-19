@@ -19,7 +19,7 @@ export const UserProvider = ({ children }) => {
 
   const [foodItems, setFoodItems] = useState([]);
 
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
     try {
       const res = await api.get('/categories');
       setFoodItems(res.data.categories);
@@ -35,7 +35,7 @@ export const UserProvider = ({ children }) => {
       //   setFoodItems(JSON.parse(cached));
       // }
     }
-  };
+  }, []);
 
   /* ---------------- CART ---------------- */
 
@@ -56,6 +56,18 @@ export const UserProvider = ({ children }) => {
 
   const clearCart = useCallback(() => {
     setCartItems([]);
+  }, []);
+
+  const logout = useCallback(async () => {
+    try {
+      await AsyncStorage.multiRemove(['token', 'isLoggedIn']);
+    } catch {
+      // ignore storage failures; still clear in-memory state
+    } finally {
+      setUser(null);
+      setIsLoggedIn(false);
+      setCartItems([]);
+    }
   }, []);
 
   // Map cart items for UI
@@ -116,24 +128,25 @@ export const UserProvider = ({ children }) => {
 
   /* ---------------- SESSION ---------------- */
 
-  const checkSession = async () => {
+  const checkSession = useCallback(async () => {
     const token = await AsyncStorage.getItem('token');
+    const loggedFlag = await AsyncStorage.getItem('isLoggedIn');
 
-    if (token) {
+    if (token && loggedFlag === 'true') {
       setIsLoggedIn(true);
       getCartData();
     } else {
       setIsLoggedIn(false);
       setCartItems([]);
     }
-  };
+  }, [getCartData]);
 
   /* ---------------- INIT ---------------- */
 
   useEffect(() => {
     checkSession();
     // fetchCategories();
-  }, []);
+  }, [checkSession]);
 
   return (
     <UserContext.Provider
@@ -142,6 +155,7 @@ export const UserProvider = ({ children }) => {
         setUser,
         isLoggedIn,
         setIsLoggedIn,
+        logout,
 
         foodItems,
         fetchCategories,

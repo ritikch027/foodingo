@@ -1,23 +1,32 @@
 import { StyleSheet, Text, View, Pressable } from 'react-native';
 import ItemsGrid from '../components/ItemsGrid';
 import { useRoute } from '@react-navigation/native';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext, useCallback } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import api from '../utils/api';
 import Toast from 'react-native-toast-message';
 import Loader from '../utils/Loader';
 import Icon from 'react-native-vector-icons/Feather';
+import { UserContext } from '../utils/userContext';
 import { colors, spacing, typography } from '../theme';
 
 const RestaurantItems = ({ navigation }) => {
   const route = useRoute();
   const { restaurant } = route.params;
+  const { user } = useContext(UserContext);
 
   const insets = useSafeAreaInsets();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchRestaurantItems = async () => {
+  const role = String(user?.role || '')
+    .toLowerCase()
+    .trim();
+  const isNonCustomer = Boolean(role) && role !== 'customer';
+
+  const fetchRestaurantItems = useCallback(async () => {
+    if (!restaurant?._id) return;
+    setLoading(true);
     try {
       const res = await api.get(`/items/restaurant/${restaurant._id}`);
       setItems(res.data.items);
@@ -30,11 +39,36 @@ const RestaurantItems = ({ navigation }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [restaurant?._id]);
 
   useEffect(() => {
     fetchRestaurantItems();
-  }, []);
+  }, [fetchRestaurantItems]);
+
+  if (isNonCustomer) {
+    return (
+      <View style={styles.center}>
+        <Icon name="shield" size={28} color={colors.muted} />
+        <Text style={[styles.errorText, { marginTop: spacing.sm }]}>
+          Customer Only
+        </Text>
+        <Pressable
+          onPress={() =>
+            navigation.canGoBack()
+              ? navigation.goBack()
+              : navigation.navigate('Home')
+          }
+          style={({ pressed }) => [
+            styles.backBtn,
+            { marginTop: spacing.md },
+            pressed && { opacity: 0.85 },
+          ]}
+        >
+          <Icon name="arrow-left" size={18} color={colors.text} />
+        </Pressable>
+      </View>
+    );
+  }
 
   if (loading) {
     return <Loader />;
@@ -69,8 +103,6 @@ const RestaurantItems = ({ navigation }) => {
 
       {/* Items Grid */}
       <ItemsGrid items={items} />
-
-      <Toast />
     </View>
   );
 };

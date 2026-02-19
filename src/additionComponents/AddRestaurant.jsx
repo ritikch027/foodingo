@@ -7,7 +7,7 @@ import { View, Text, StyleSheet, Pressable } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import Icon from 'react-native-vector-icons/Feather';
 import { UserContext } from '../utils/userContext';
-import { colors, radii, spacing, typography, shadows, motion } from '../theme';
+import { colors, spacing, typography, shadows, motion } from '../theme';
 
 const AddRestaurant = ({ navigation }) => {
   const { user } = useContext(UserContext);

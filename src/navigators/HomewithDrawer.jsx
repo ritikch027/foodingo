@@ -10,12 +10,12 @@ import {
   Pressable,
   Image,
   Linking,
-  Alert,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/Feather';
 import { UserContext } from '../utils/userContext';
-import Home from '../screens/Home';
+import { useConfirm } from '../utils/confirm';
+import { showSimpleToast } from '../utils/toast';
+import RoleHome from '../screens/RoleHome';
 import Profile from '../components/profile';
 import AddRestaurant from '../additionComponents/AddRestaurant';
 import AddItem from '../additionComponents/AddItems';
@@ -33,20 +33,21 @@ const Drawer = createDrawerNavigator();
 /* ---------------- CUSTOM DRAWER ---------------- */
 
 const CustomDrawerContent = props => {
-  const { user, setIsLoggedIn } = useContext(UserContext);
+  const { user, logout } = useContext(UserContext);
+  const confirm = useConfirm();
 
   const handleLogout = async () => {
-    Alert.alert('Logout', 'Are you sure you want to logout?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Logout',
-        style: 'destructive',
-        onPress: async () => {
-          await AsyncStorage.removeItem('token');
-          setIsLoggedIn(false);
-        },
-      },
-    ]);
+    const ok = await confirm({
+      title: 'Logout',
+      message: 'Are you sure you want to logout?',
+      confirmText: 'Logout',
+      cancelText: 'Cancel',
+      destructive: true,
+    });
+
+    if (!ok) return;
+    await logout();
+    showSimpleToast('Logged out');
   };
 
   const openSocialMedia = platform => {
@@ -64,24 +65,6 @@ const CustomDrawerContent = props => {
 
     ...(user?.role === 'customer'
       ? [{ name: 'My Orders', screen: 'MyOrders', icon: 'shopping-bag' }]
-      : []),
-    ...(user?.role === 'owner'
-      ? [
-          { name: 'Add Items', icon: 'package', screen: 'AddItem' },
-          {
-            name: 'Manage Items',
-            icon: 'edit-3',
-            screen: 'OwnerItemsDashboard',
-          },
-          { name: 'Orders', icon: 'clipboard', screen: 'RestaurantOrders' },
-        ]
-      : []),
-
-    ...(user?.role === 'admin'
-      ? [
-          { name: 'Admin Panel', icon: 'shield', screen: 'AdminManagement' },
-          { name: 'Add Category', icon: 'tag', screen: 'AddCategory' },
-        ]
       : []),
 
     {
@@ -163,21 +146,21 @@ const CustomDrawerContent = props => {
 
           <View style={styles.socialContainer}>
             <Pressable
-              style={[styles.socialButton, { backgroundColor: '#E1306C' }]}
+              style={[styles.socialButton, styles.socialInstagram]}
               onPress={() => openSocialMedia('instagram')}
             >
               <Icon name="instagram" size={20} color={colors.surface} />
             </Pressable>
 
             <Pressable
-              style={[styles.socialButton, { backgroundColor: '#1877F2' }]}
+              style={[styles.socialButton, styles.socialFacebook]}
               onPress={() => openSocialMedia('facebook')}
             >
               <Icon name="facebook" size={20} color={colors.surface} />
             </Pressable>
 
             <Pressable
-              style={[styles.socialButton, { backgroundColor: '#1DA1F2' }]}
+              style={[styles.socialButton, styles.socialTwitter]}
               onPress={() => openSocialMedia('twitter')}
             >
               <Icon name="twitter" size={20} color={colors.surface} />
@@ -210,7 +193,7 @@ const CustomDrawerContent = props => {
 const HomeWithDrawer = () => {
   return (
     <Drawer.Navigator
-      drawerContent={props => <CustomDrawerContent {...props} />}
+      drawerContent={CustomDrawerContent}
       screenOptions={{
         headerShown: false,
         drawerStyle: {
@@ -221,7 +204,7 @@ const HomeWithDrawer = () => {
         overlayColor: 'rgba(0,0,0,0.4)',
       }}
     >
-      <Drawer.Screen name="Home" component={Home} />
+      <Drawer.Screen name="Home" component={RoleHome} />
       <Drawer.Screen name="Profile" component={Profile} />
       <Drawer.Screen name="AddRestaurant" component={AddRestaurant} />
       <Drawer.Screen name="AddItem" component={AddItem} />
@@ -348,6 +331,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     ...shadows.soft,
+  },
+  socialInstagram: {
+    backgroundColor: '#E1306C',
+  },
+  socialFacebook: {
+    backgroundColor: '#1877F2',
+  },
+  socialTwitter: {
+    backgroundColor: '#1DA1F2',
   },
 
   footerSection: {
