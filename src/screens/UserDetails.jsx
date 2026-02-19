@@ -174,12 +174,6 @@ const UserDetails = ({ route, navigation }) => {
   return (
     <View style={styles.screen}>
       <View style={styles.headerRow}>
-        <Pressable
-          onPress={() => navigation.navigate('AdminManagement')}
-          style={({ pressed }) => [styles.backBtn, pressed && { opacity: 0.8 }]}
-        >
-          <Icon name="arrow-left" size={18} color={colors.text} />
-        </Pressable>
         <Text style={styles.heading}>User Details</Text>
       </View>
 

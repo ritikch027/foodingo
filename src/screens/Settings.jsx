@@ -99,12 +99,7 @@ const Settings = ({ navigation }) => {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <View style={styles.headerRow}>
-          <Pressable
-            onPress={() => navigation.goBack()}
-            style={({ pressed }) => [styles.backBtn, pressed && styles.pressed]}
-          >
-            <Icon name="arrow-left" size={18} color={colors.text} />
-          </Pressable>
+          <View style={styles.backBtnPlaceholder} />
           <Text style={styles.title}>Settings</Text>
           <View style={styles.backBtnPlaceholder} />
         </View>

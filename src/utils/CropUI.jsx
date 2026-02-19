@@ -34,9 +34,7 @@ export default function MyCropScreen({ navigation }) {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       {/* Header */}
       <View style={styles.header}>
-        <Pressable onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color={colors.text} />
-        </Pressable>
+        <View style={styles.headerSpacerLeft} />
 
         <Text style={styles.title}>Crop Image</Text>
 
@@ -113,6 +111,9 @@ const styles = StyleSheet.create({
 
   headerSpacer: {
     width: 26,
+  },
+  headerSpacerLeft: {
+    width: 24,
   },
 
   center: {

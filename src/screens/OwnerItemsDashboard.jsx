@@ -36,13 +36,6 @@ const OwnerItemsDashboard = ({ navigation }) => {
   const [editingItem, setEditingItem] = useState(null);
   const [saving, setSaving] = useState(false);
   const [query, setQuery] = useState('');
-  const handleBack = () => {
-    if (navigation?.canGoBack?.()) {
-      navigation.goBack();
-      return;
-    }
-    navigation?.navigate?.('Home');
-  };
 
   const fetchItems = useCallback(async () => {
     if (!restaurantId) return;
@@ -69,11 +62,35 @@ const OwnerItemsDashboard = ({ navigation }) => {
     fetchCategories();
   }, [fetchCategories]);
 
+  const normalizeCategoryValue = rawValue => {
+    const raw =
+      typeof rawValue === 'string'
+        ? rawValue
+        : rawValue?.category || rawValue?.name || '';
+
+    if (!raw) return '';
+
+    const match = foodItems.find(
+      c => String(c?.category || '').toLowerCase() === String(raw).toLowerCase(),
+    )?.category;
+
+    return match || raw;
+  };
+
   const openEdit = item => {
     setEditingItem({
       ...item,
+      name: String(item?.name || ''),
+      category: normalizeCategoryValue(item?.category),
       price: String(item.price ?? ''),
-      discountPercent: String(item.discountPercent ?? ''),
+      discountPercent: String(item.discountPercent ?? 0),
+      isVeg: typeof item?.isVeg === 'boolean' ? item.isVeg : true,
+      image:
+        item?.image && typeof item.image === 'object'
+          ? item.image
+          : item?.image?.url
+            ? item.image
+            : null,
     });
   };
 
@@ -97,6 +114,10 @@ const OwnerItemsDashboard = ({ navigation }) => {
       Toast.show({ type: 'error', text1: 'Name is required' });
       return;
     }
+    if (!String(editingItem.category || '').trim()) {
+      Toast.show({ type: 'error', text1: 'Category is required' });
+      return;
+    }
     if (isNaN(priceNum) || priceNum <= 0) {
       Toast.show({ type: 'error', text1: 'Price must be valid' });
       return;
@@ -110,7 +131,7 @@ const OwnerItemsDashboard = ({ navigation }) => {
     try {
       const payload = {
         name: editingItem.name.trim(),
-        category: editingItem.category,
+        category: String(editingItem.category || '').trim(),
         price: priceNum,
         discountPercent: discountNum,
         image: editingItem.image,
@@ -183,7 +204,13 @@ const OwnerItemsDashboard = ({ navigation }) => {
 
   const renderItem = ({ item }) => (
     <View style={styles.card}>
-      <Image source={{ uri: item.image.url }} style={styles.cardImage} />
+      {item?.image?.url ? (
+        <Image source={{ uri: item.image.url }} style={styles.cardImage} />
+      ) : (
+        <View style={[styles.cardImage, styles.cardImageFallback]}>
+          <Icon name="image" size={26} color={colors.muted} />
+        </View>
+      )}
 
       <View style={styles.cardBody}>
         <View style={styles.titleRow}>
@@ -237,14 +264,7 @@ const OwnerItemsDashboard = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.topBar}>
-        <Pressable
-          onPress={handleBack}
-          style={({ pressed }) => [styles.backBtn, pressed && { opacity: 0.8 }]}
-        >
-          <Icon name="arrow-left" size={18} color={colors.text} />
-        </Pressable>
-      </View>
+      <View style={styles.topBar} />
 
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Manage Items</Text>
@@ -493,6 +513,11 @@ const styles = StyleSheet.create({
   cardImage: {
     width: '100%',
     height: 160,
+  },
+  cardImageFallback: {
+    backgroundColor: colors.bg,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
   cardBody: {

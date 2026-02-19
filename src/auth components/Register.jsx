@@ -83,16 +83,7 @@ const Register = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.topBar}>
-        <Pressable
-          onPress={() =>
-            navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Login')
-          }
-          style={({ pressed }) => [styles.backBtn, pressed && { opacity: 0.8 }]}
-        >
-          <Icon name="arrow-left" size={18} color={colors.text} />
-        </Pressable>
-      </View>
+      <View style={styles.topBar} />
 
       {/* Header */}
       <Animated.View

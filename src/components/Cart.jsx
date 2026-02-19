@@ -76,15 +76,6 @@ const Cart = ({ navigation }) => {
       {/* Header */}
       <View style={styles.headerSection}>
         <View style={styles.headerLeft}>
-          <Pressable
-            onPress={() =>
-              navigation.canGoBack() ? navigation.goBack() : navigation.navigate('HomeWithDrawer')
-            }
-            style={({ pressed }) => [styles.backBtn, pressed && { opacity: 0.8 }]}
-          >
-            <Icon name="arrow-left" size={18} color={colors.text} />
-          </Pressable>
-
           <View style={styles.headerContent}>
             <Icon name="shopping-cart" size={22} color={colors.primary} />
             <Text style={styles.headingTxt}>Your Cart</Text>

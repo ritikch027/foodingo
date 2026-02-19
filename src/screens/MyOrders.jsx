@@ -159,15 +159,6 @@ const MyOrders = ({ navigation }) => {
       {/* Header */}
       <View style={styles.headerSection}>
         <View style={styles.headerLeft}>
-          <Pressable
-            onPress={() =>
-              navigation.canGoBack() ? navigation.goBack() : navigation.navigate('HomeWithDrawer')
-            }
-            style={({ pressed }) => [styles.backBtn, pressed && { opacity: 0.8 }]}
-          >
-            <Icon name="arrow-left" size={18} color={colors.text} />
-          </Pressable>
-
           <Animated.View
             entering={FadeInDown.duration(motion.fadeDuration)}
             style={styles.headerContent}

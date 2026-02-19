@@ -1,7 +1,6 @@
 import React from 'react';
-import { StyleSheet, Text, View, ScrollView, Pressable } from 'react-native';
+import { StyleSheet, Text, View, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Icon from 'react-native-vector-icons/Feather';
 import { colors, radii, spacing, typography, shadows } from '../theme';
 
 const OrderDetails = ({ navigation, route }) => {
@@ -38,12 +37,7 @@ const OrderDetails = ({ navigation, route }) => {
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
-        <Pressable
-          onPress={() => navigation.goBack()}
-          style={({ pressed }) => [styles.backButton, pressed && { opacity: 0.8 }]}
-        >
-          <Icon name="arrow-left" size={22} color={colors.text} />
-        </Pressable>
+        <View style={styles.backButton} />
         <Text style={styles.headerTitle}>Order Details</Text>
         <View style={styles.placeholder} />
       </View>

@@ -72,16 +72,7 @@ const Profile = ({ navigation }) => {
         contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.topBar}>
-          <Pressable
-            onPress={() =>
-              navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Home')
-            }
-            style={({ pressed }) => [styles.backBtn, pressed && { opacity: 0.8 }]}
-          >
-            <Icon name="arrow-left" size={18} color={colors.text} />
-          </Pressable>
-        </View>
+        <View style={styles.topBar} />
 
         {/* Header */}
         <View style={styles.header}>

@@ -25,6 +25,7 @@ import MyOrders from './src/screens/MyOrders';
 import OrderSuccess from './src/screens/OrderSuccess';
 import RestaurantOrders from './src/screens/RestaurantOrders';
 import OrderDetails from './src/screens/OrderDetails';
+import ItemDetails from './src/screens/ItemDetails';
 import Settings from './src/screens/Settings';
 import { colors, spacing, typography } from './src/theme';
 import api from './src/utils/api';
@@ -103,6 +104,18 @@ const AppNavigation = () => {
     checkLogin();
   }, [checkLogin]);
 
+  useEffect(() => {
+    if (!isLoggedIn) {
+      setServerReady(false);
+      setServerError(false);
+      return;
+    }
+
+    if (!serverReady && !serverError) {
+      verifyServer();
+    }
+  }, [isLoggedIn, serverError, serverReady, verifyServer]);
+
   // Smooth splash loader
   if (booting || isLoggedIn === null || (isLoggedIn && !serverReady && !serverError)) {
     return (
@@ -135,6 +148,7 @@ const AppNavigation = () => {
             <Stack.Screen name="OrderDetails" component={OrderDetails} />
             <Stack.Screen name="OrderSuccess" component={OrderSuccess} />
             <Stack.Screen name="RestaurantItems" component={RestaurantItems} />
+            <Stack.Screen name="ItemDetails" component={ItemDetails} />
             <Stack.Screen
               name="RestaurantOrders"
               component={RestaurantOrders}

@@ -189,16 +189,7 @@ const Checkout = ({ navigation }) => {
     return (
       <View style={[styles.container, { paddingTop: insets.top + spacing.lg }]}>
         <View style={styles.header}>
-          <Pressable
-            style={styles.backButton}
-            onPress={() =>
-              navigation.canGoBack()
-                ? navigation.goBack()
-                : navigation.navigate('Home')
-            }
-          >
-            <Icon name="arrow-left" size={22} color={colors.text} />
-          </Pressable>
+          <View style={styles.backButton} />
           <Text style={styles.headerTitle}>Checkout</Text>
           <View style={styles.placeholder} />
         </View>
@@ -220,12 +211,7 @@ const Checkout = ({ navigation }) => {
       style={styles.container}
     >
       <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
-        <Pressable
-          onPress={() => navigation.goBack()}
-          style={styles.backButton}
-        >
-          <Icon name="arrow-left" size={22} color={colors.text} />
-        </Pressable>
+        <View style={styles.backButton} />
         <Text style={styles.headerTitle}>Checkout</Text>
         <View style={styles.placeholder} />
       </View>

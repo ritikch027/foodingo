@@ -85,16 +85,6 @@ const RestaurantOrders = ({ navigation }) => {
   return (
     <View style={[styles.screen, { paddingTop: insets.top + spacing.sm }]}>
       <View style={styles.headerWrap}>
-        <View style={styles.headerTop}>
-          <Pressable
-            onPress={() =>
-              navigation.canGoBack() ? navigation.goBack() : navigation.navigate('HomeWithDrawer')
-            }
-            style={({ pressed }) => [styles.backBtn, pressed && { opacity: 0.8 }]}
-          >
-            <Icon name="arrow-left" size={18} color={colors.text} />
-          </Pressable>
-        </View>
         <Text style={styles.heading}>Restaurant Orders</Text>
         <Text style={styles.subHeading}>Track and update live order status</Text>
       </View>

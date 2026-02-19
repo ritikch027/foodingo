@@ -1,6 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Pressable } from 'react-native';
-import Icon from 'react-native-vector-icons/Feather';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { colors, radii, spacing, typography, shadows } from '../theme';
 
 const OrderSuccess = ({ route, navigation }) => {
@@ -11,16 +10,7 @@ const OrderSuccess = ({ route, navigation }) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.topBar}>
-        <Pressable
-          onPress={() =>
-            navigation.canGoBack() ? navigation.goBack() : navigation.navigate('HomeWithDrawer')
-          }
-          style={({ pressed }) => [styles.backBtn, pressed && { opacity: 0.8 }]}
-        >
-          <Icon name="arrow-left" size={18} color={colors.text} />
-        </Pressable>
-      </View>
+      <View style={styles.topBar} />
 
       <View style={styles.iconWrap}>
         <Text style={styles.iconText}>{'\uD83C\uDF89'}</Text>

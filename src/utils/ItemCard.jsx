@@ -4,87 +4,102 @@ import Animated, { FadeInDown, Layout } from 'react-native-reanimated';
 import { colors, radii, spacing, typography, shadows, motion } from '../theme';
 import Icon from 'react-native-vector-icons/Feather';
 
-const ItemCard = ({ item, cartItem, onAdd, index = 0 }) => {
+const getRestaurantName = item =>
+  item?.restaurantName ||
+  item?.restaurant?.name ||
+  item?.restaurant?.restaurantName ||
+  item?.restaurant?.title ||
+  null;
+
+const ItemCard = ({ item, restaurantName: restaurantNameProp, cartItem, onAdd, onPress, index = 0 }) => {
+  const restaurantName = restaurantNameProp || getRestaurantName(item);
   return (
     <Animated.View
       entering={FadeInDown.duration(motion.fadeDuration).delay(
         index * motion.fadeDelay,
       )}
       layout={Layout.springify()}
-      style={styles.card}
     >
-      <View style={styles.leftContent}>
-        <View
-          style={[
-            styles.vegMarkOuter,
-            item.isVeg ? styles.vegMarkOuterVeg : styles.vegMarkOuterNonVeg,
-          ]}
-        >
+      <Pressable
+        onPress={() => onPress?.(item)}
+        style={({ pressed }) => [styles.card, pressed && { opacity: 0.97 }]}
+      >
+        <View style={styles.leftContent}>
           <View
             style={[
-              styles.vegMarkInner,
-              item.isVeg ? styles.vegMarkInnerVeg : styles.vegMarkInnerNonVeg,
-            ]}
-          />
-        </View>
-
-        <Text style={styles.name} numberOfLines={2}>
-          {item.name}
-        </Text>
-
-        <View style={styles.priceRow}>
-          <Text style={styles.price}>
-            {'\u20B9'}
-            {Number(item.offerPrice || item.price || 0).toFixed(2)}
-          </Text>
-          {Number(item.offerPrice || 0) < Number(item.price || 0) && (
-            <Text style={styles.oldPrice}>
-              {'\u20B9'}
-              {Number(item.price || 0).toFixed(2)}
-            </Text>
-          )}
-        </View>
-
-        <Text style={styles.desc} numberOfLines={3}>
-          {item.description || `${item.discountPercent || 0}% off on this item`}
-        </Text>
-
-        <View style={styles.metaActions}>
-          <Pressable style={styles.metaIconBtn}>
-            <Icon name="bookmark" size={16} color={colors.muted} />
-          </Pressable>
-          <Pressable style={styles.metaIconBtn}>
-            <Icon name="corner-up-right" size={16} color={colors.muted} />
-          </Pressable>
-        </View>
-      </View>
-
-      <View style={styles.rightContent}>
-        {item?.image?.url ? (
-          <Image source={{ uri: item.image.url }} style={styles.image} />
-        ) : (
-          <View style={[styles.image, styles.imageFallback]}>
-            <Icon name="image" size={20} color={colors.muted} />
-          </View>
-        )}
-
-        {cartItem ? (
-          <View style={styles.counterSlot}>
-            <Counter item={cartItem} compact />
-          </View>
-        ) : (
-          <Pressable
-            onPress={() => onAdd?.(item)}
-            style={({ pressed }) => [
-              styles.addBtn,
-              pressed && { opacity: 0.85 },
+              styles.vegMarkOuter,
+              item.isVeg ? styles.vegMarkOuterVeg : styles.vegMarkOuterNonVeg,
             ]}
           >
-            <Text style={styles.addText}>ADD</Text>
-            <Icon name="plus" size={18} color={colors.primaryDark} />
-          </Pressable>
-        )}
-      </View>
+            <View
+              style={[
+                styles.vegMarkInner,
+                item.isVeg ? styles.vegMarkInnerVeg : styles.vegMarkInnerNonVeg,
+              ]}
+            />
+          </View>
+
+          <Text style={styles.name} numberOfLines={2}>
+            {item.name}
+          </Text>
+
+          {!!restaurantName && (
+            <Text style={styles.restaurant} numberOfLines={1}>
+              {restaurantName}
+            </Text>
+          )}
+
+          <View style={styles.priceRow}>
+            <Text style={styles.price}>
+              {'\u20B9'}
+              {Number(item.offerPrice || item.price || 0).toFixed(2)}
+            </Text>
+            {Number(item.offerPrice || 0) < Number(item.price || 0) && (
+              <Text style={styles.oldPrice}>
+                {'\u20B9'}
+                {Number(item.price || 0).toFixed(2)}
+              </Text>
+            )}
+          </View>
+
+          <Text style={styles.desc} numberOfLines={3}>
+            {item.description || `${item.discountPercent || 0}% off on this item`}
+          </Text>
+
+          <View style={styles.metaActions}>
+            <Pressable style={styles.metaIconBtn}>
+              <Icon name="bookmark" size={16} color={colors.muted} />
+            </Pressable>
+            <Pressable style={styles.metaIconBtn}>
+              <Icon name="corner-up-right" size={16} color={colors.muted} />
+            </Pressable>
+          </View>
+        </View>
+
+        <View style={styles.rightContent}>
+          {item?.image?.url ? (
+            <Image source={{ uri: item.image.url }} style={styles.image} />
+          ) : (
+            <View style={[styles.image, styles.imageFallback]}>
+              <Icon name="image" size={20} color={colors.muted} />
+            </View>
+          )}
+
+          {cartItem ? (
+            <View style={styles.counterSlot}>
+              <Counter item={cartItem} compact />
+            </View>
+          ) : (
+            <Pressable
+              onPress={() => onAdd?.(item)}
+              style={({ pressed }) => [styles.addBtn, pressed && { opacity: 0.85 }]}
+            >
+              <Text style={styles.addText}>ADD</Text>
+              <Icon name="plus" size={18} color={colors.primaryDark} />
+            </Pressable>
+          )}
+        </View>
+      </Pressable>
     </Animated.View>
   );
 };
@@ -133,6 +148,11 @@ const styles = StyleSheet.create({
     color: colors.text,
     marginTop: spacing.xs,
   },
+  restaurant: {
+    ...typography.caption,
+    color: colors.muted,
+    marginTop: 4,
+  },
 
   priceRow: {
     flexDirection: 'row',
@@ -165,9 +185,9 @@ const styles = StyleSheet.create({
     bottom: -14,
     width: 116,
     marginTop: spacing.sm,
-    backgroundColor: '#E8F5EE',
+    backgroundColor: colors.tintAlt,
     borderWidth: 1,
-    borderColor: '#3E9C69',
+    borderColor: colors.primary,
     paddingVertical: 10,
     borderRadius: radii.md,
     flexDirection: 'row',

@@ -4,7 +4,7 @@ import Toast from 'react-native-toast-message';
 import GenericForm from '../utils/GenericForm';
 import api from '../utils/api';
 import { UserContext } from '../utils/userContext';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import Icon from 'react-native-vector-icons/Feather';
 import { colors, spacing, typography, shadows, motion } from '../theme';
@@ -166,16 +166,7 @@ const AddItem = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.topBar}>
-        <Pressable
-          onPress={() =>
-            navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Home')
-          }
-          style={({ pressed }) => [styles.backBtn, pressed && { opacity: 0.8 }]}
-        >
-          <Icon name="arrow-left" size={18} color={colors.text} />
-        </Pressable>
-      </View>
+      <View style={styles.topBar} />
 
       {/* Header */}
       <Animated.View

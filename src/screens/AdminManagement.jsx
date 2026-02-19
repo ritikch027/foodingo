@@ -228,13 +228,6 @@ const AdminManagement = () => {
   };
 
   const isUsersTab = activeTab === TABS.USERS;
-  const handleBack = () => {
-    if (navigation.canGoBack()) {
-      navigation.goBack();
-      return;
-    }
-    navigation.navigate('Home');
-  };
 
   if (user?.role !== 'admin') {
     return (
@@ -251,15 +244,6 @@ const AdminManagement = () => {
     <View style={styles.screen}>
       <View style={styles.header}>
         <View style={styles.headerTopRow}>
-          <Pressable
-            onPress={handleBack}
-            style={({ pressed }) => [
-              styles.backBtn,
-              pressed && { opacity: 0.8 },
-            ]}
-          >
-            <Icon name="arrow-left" size={18} color={colors.text} />
-          </Pressable>
           <Text style={styles.heading}>Admin Panel</Text>
         </View>
         <Text style={styles.subHeading}>Manage users and restaurants</Text>

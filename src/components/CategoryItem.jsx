@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, Pressable } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import ItemsGrid from '../components/ItemsGrid';
 import { useRoute } from '@react-navigation/native';
 import { useState, useEffect, useCallback } from 'react';
@@ -6,7 +6,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import api from '../utils/api';
 import Loader from '../utils/Loader';
 import Toast from 'react-native-toast-message';
-import Icon from 'react-native-vector-icons/Feather';
 import { colors, spacing, typography } from '../theme';
 
 const CategoryItem = ({ navigation }) => {
@@ -45,16 +44,7 @@ const CategoryItem = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <View style={[styles.topBar, { paddingTop: insets.top + 10 }]}>
-        <Pressable
-          onPress={() =>
-            navigation.canGoBack() ? navigation.goBack() : navigation.navigate('HomeWithDrawer')
-          }
-          style={({ pressed }) => [styles.backBtn, pressed && { opacity: 0.8 }]}
-        >
-          <Icon name="arrow-left" size={18} color={colors.text} />
-        </Pressable>
-      </View>
+      <View style={[styles.topBar, { paddingTop: insets.top + 10 }]} />
 
       {/* Header */}
       <View style={styles.header}>
@@ -65,7 +55,7 @@ const CategoryItem = ({ navigation }) => {
       </View>
 
       {/* Items Grid */}
-      <ItemsGrid items={items} />
+      <ItemsGrid items={items} navigation={navigation} />
     </View>
   );
 };
