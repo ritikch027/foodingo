@@ -54,6 +54,7 @@ const UserDetails = ({ route, navigation }) => {
 
   const role = useMemo(() => getUserRole(targetUser), [targetUser]);
   const banned = useMemo(() => isUserBanned(targetUser), [targetUser]);
+  const roleLocked = role === 'admin';
 
   const updateUserRole = async (userId, nextRole) => {
     const payload = { role: nextRole };
@@ -62,6 +63,14 @@ const UserDetails = ({ route, navigation }) => {
 
   const handleChangeRole = nextRole => {
     if (!targetUser?._id || role === nextRole) return;
+
+    if (roleLocked) {
+      Toast.show({
+        type: 'error',
+        text1: "Admin role can't be changed",
+      });
+      return;
+    }
 
     const userLabel =
       targetUser?.name || targetUser?.email || targetUser?.phone || 'this user';
@@ -193,29 +202,38 @@ const UserDetails = ({ route, navigation }) => {
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Change Role</Text>
-        <View style={styles.roleActionsRow}>
-          {ROLE_OPTIONS.map(option => {
-            const selected = option === role;
-            return (
-              <Pressable
-                key={option}
-                onPress={() => handleChangeRole(option)}
-                disabled={loading || selected}
-                style={({ pressed }) => [
-                  styles.roleBtn,
-                  selected && styles.roleBtnActive,
-                  (pressed || loading) && { opacity: 0.85 },
-                ]}
-              >
-                <Text
-                  style={[styles.roleBtnText, selected && styles.roleBtnTextActive]}
+        {roleLocked ? (
+          <Text style={styles.helperText}>
+            This user is an admin. Admin role is protected and cannot be changed.
+          </Text>
+        ) : (
+          <View style={styles.roleActionsRow}>
+            {ROLE_OPTIONS.map(option => {
+              const selected = option === role;
+              return (
+                <Pressable
+                  key={option}
+                  onPress={() => handleChangeRole(option)}
+                  disabled={loading || selected}
+                  style={({ pressed }) => [
+                    styles.roleBtn,
+                    selected && styles.roleBtnActive,
+                    (pressed || loading) && { opacity: 0.85 },
+                  ]}
                 >
-                  {option}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
+                  <Text
+                    style={[
+                      styles.roleBtnText,
+                      selected && styles.roleBtnTextActive,
+                    ]}
+                  >
+                    {option}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        )}
       </View>
 
       <Pressable

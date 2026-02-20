@@ -24,6 +24,7 @@ import OwnerItemsDashboard from '../screens/OwnerItemsDashboard';
 import AdminManagement from '../screens/AdminManagement';
 import UserDetails from '../screens/UserDetails';
 import RestaurantDetails from '../screens/RestaurantDetails';
+import OwnerRestaurantEdit from '../screens/OwnerRestaurantEdit';
 
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { colors, radii, spacing, typography, shadows, motion } from '../theme';
@@ -62,6 +63,27 @@ const CustomDrawerContent = props => {
   const menuItems = [
     { name: 'Home', icon: 'home', screen: 'Home' },
     { name: 'Profile', icon: 'user', screen: 'Profile' },
+
+    ...(user?.role === 'owner'
+      ? [
+          user?.restaurant
+            ? {
+                name: 'Restaurant Details',
+                screen: 'OwnerRestaurantEdit',
+                icon: 'edit-3',
+              }
+            : { name: 'Create Restaurant', screen: 'AddRestaurant', icon: 'home' },
+          { name: 'Manage Items', screen: 'OwnerItemsDashboard', icon: 'package' },
+          { name: 'Add Item', screen: 'AddItem', icon: 'plus-square' },
+        ]
+      : []),
+
+    ...(user?.role === 'admin'
+      ? [
+          { name: 'Admin Panel', screen: 'AdminManagement', icon: 'shield' },
+          { name: 'Add Category', screen: 'AddCategory', icon: 'tag' },
+        ]
+      : []),
 
     ...(user?.role === 'customer'
       ? [{ name: 'My Orders', screen: 'MyOrders', icon: 'shopping-bag' }]
@@ -212,6 +234,7 @@ const HomeWithDrawer = () => {
       <Drawer.Screen name="AdminManagement" component={AdminManagement} />
       <Drawer.Screen name="UserDetails" component={UserDetails} />
       <Drawer.Screen name="RestaurantDetails" component={RestaurantDetails} />
+      <Drawer.Screen name="OwnerRestaurantEdit" component={OwnerRestaurantEdit} />
       <Drawer.Screen
         name="OwnerItemsDashboard"
         component={OwnerItemsDashboard}

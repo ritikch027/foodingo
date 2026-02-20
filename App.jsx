@@ -5,7 +5,7 @@ import {
   View,
   Pressable,
 } from 'react-native';
-import { useEffect, useState, useContext, useCallback } from 'react';
+import { useEffect, useState, useContext, useCallback, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -63,19 +63,35 @@ const ServerErrorScreen = ({ onRetry }) => (
 const AppNavigation = () => {
   const { isLoggedIn, setIsLoggedIn } = useContext(UserContext);
   const [booting, setBooting] = useState(true);
-  const [serverReady, setServerReady] = useState(false);
-  const [serverError, setServerError] = useState(false);
+  const [serverStatus, setServerStatus] = useState('idle');
+  const ensureInFlight = useRef(false);
+  const ensureReqId = useRef(0);
 
-  const verifyServer = useCallback(async () => {
-    setServerError(false);
-    setServerReady(false);
+  const ensureServerReady = useCallback(async ({ force = false } = {}) => {
+    if (!isLoggedIn) return;
+
+    if (ensureInFlight.current && !force) return;
+    ensureInFlight.current = true;
+    const reqId = ++ensureReqId.current;
+
+    setServerStatus('checking');
+
     try {
-      await api.get('/offers', { timeout: 25000 });
-      setServerReady(true);
+      const timeoutMs = 30000;
+      await Promise.race([
+        api.get('/offers', { timeout: 25000 }),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Server check timeout')), timeoutMs),
+        ),
+      ]);
+
+      if (ensureReqId.current === reqId) setServerStatus('ready');
     } catch (err) {
-      setServerError(true);
+      if (ensureReqId.current === reqId) setServerStatus('error');
+    } finally {
+      if (ensureReqId.current === reqId) ensureInFlight.current = false;
     }
-  }, []);
+  }, [isLoggedIn]);
 
   const checkLogin = useCallback(async () => {
     setBooting(true);
@@ -85,20 +101,21 @@ const AppNavigation = () => {
 
       if (val === 'true' && token) {
         setIsLoggedIn(true);
-        await verifyServer();
       } else {
+        ensureReqId.current += 1;
+        ensureInFlight.current = false;
         setIsLoggedIn(false);
-        setServerReady(false);
-        setServerError(false);
+        setServerStatus('idle');
       }
     } catch (err) {
+      ensureReqId.current += 1;
+      ensureInFlight.current = false;
       setIsLoggedIn(false);
-      setServerReady(false);
-      setServerError(false);
+      setServerStatus('idle');
     } finally {
       setBooting(false);
     }
-  }, [setIsLoggedIn, verifyServer]);
+  }, [setIsLoggedIn]);
 
   useEffect(() => {
     checkLogin();
@@ -106,18 +123,23 @@ const AppNavigation = () => {
 
   useEffect(() => {
     if (!isLoggedIn) {
-      setServerReady(false);
-      setServerError(false);
+      ensureReqId.current += 1;
+      ensureInFlight.current = false;
+      setServerStatus('idle');
       return;
     }
 
-    if (!serverReady && !serverError) {
-      verifyServer();
+    if (serverStatus === 'idle') {
+      ensureServerReady();
     }
-  }, [isLoggedIn, serverError, serverReady, verifyServer]);
+  }, [ensureServerReady, isLoggedIn, serverStatus]);
 
   // Smooth splash loader
-  if (booting || isLoggedIn === null || (isLoggedIn && !serverReady && !serverError)) {
+  if (
+    booting ||
+    isLoggedIn === null ||
+    (isLoggedIn && (serverStatus === 'idle' || serverStatus === 'checking'))
+  ) {
     return (
       <Animated.View entering={FadeIn} style={styles.fullFlex}>
         <Loader />
@@ -125,8 +147,8 @@ const AppNavigation = () => {
     );
   }
 
-  if (isLoggedIn && serverError) {
-    return <ServerErrorScreen onRetry={checkLogin} />;
+  if (isLoggedIn && serverStatus === 'error') {
+    return <ServerErrorScreen onRetry={() => ensureServerReady({ force: true })} />;
   }
 
   return (

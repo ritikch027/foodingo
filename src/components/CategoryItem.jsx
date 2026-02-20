@@ -16,30 +16,42 @@ const CategoryItem = ({ navigation }) => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchItemByCategory = useCallback(async () => {
-    setLoading(true);
-    try {
-      const res = await api.get(
-        `/items/category/${encodeURIComponent(category)}`,
-      );
-
-      setItems(res.data.items || []);
-    } catch (error) {
-      console.log('Category API error:', error.message);
-      Toast.show({
-        type: 'error',
-        text1: 'Failed to load items',
-        text2: 'Please try again later',
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, [category]);
-
   useEffect(() => {
-    fetchItemByCategory();
-  }, [fetchItemByCategory]);
+    if (!category) return;
 
+    let isMounted = true;
+
+    const fetchItemByCategory = async () => {
+      setLoading(true);
+      try {
+        const res = await api.get(
+          `/items/category/${encodeURIComponent(category)}`,
+        );
+
+        if (isMounted) {
+          setItems(res.data.items || []);
+        }
+      } catch (error) {
+        console.log('Category API error:', error.message);
+
+        if (isMounted) {
+          Toast.show({
+            type: 'error',
+            text1: 'Failed to load items',
+            text2: 'Please try again later',
+          });
+        }
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    fetchItemByCategory();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [category]);
   if (loading) return <Loader />;
 
   return (

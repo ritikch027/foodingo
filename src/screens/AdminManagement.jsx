@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import Icon from 'react-native-vector-icons/Feather';
 import api from '../utils/api';
@@ -41,6 +42,7 @@ const getOwnerId = restaurant => {
 
 const AdminManagement = () => {
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const { user } = React.useContext(UserContext);
   const [activeTab, setActiveTab] = useState(TABS.USERS);
   const [users, setUsers] = useState([]);
@@ -120,6 +122,15 @@ const AdminManagement = () => {
       return name.includes(q) || location.includes(q);
     });
   }, [restaurants, restaurantsQuery]);
+
+  const stats = useMemo(() => {
+    const bannedCount = users.reduce((sum, u) => sum + (isUserBanned(u) ? 1 : 0), 0);
+    return {
+      users: users.length,
+      banned: bannedCount,
+      restaurants: restaurants.length,
+    };
+  }, [restaurants.length, users]);
 
   const usersById = useMemo(() => {
     const map = {};
@@ -242,11 +253,42 @@ const AdminManagement = () => {
 
   return (
     <View style={styles.screen}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
         <View style={styles.headerTopRow}>
+          <Pressable
+            onPress={() => navigation.openDrawer?.()}
+            style={({ pressed }) => [styles.iconBtn, pressed && { opacity: 0.7 }]}
+          >
+            <Icon name="menu" size={18} color={colors.text} />
+          </Pressable>
+
           <Text style={styles.heading}>Admin Panel</Text>
+
+          <Pressable
+            onPress={() => loadAll({ silent: false })}
+            style={({ pressed }) => [styles.iconBtn, pressed && { opacity: 0.7 }]}
+          >
+            <Icon name="refresh-cw" size={18} color={colors.text} />
+          </Pressable>
         </View>
         <Text style={styles.subHeading}>Manage users and restaurants</Text>
+
+        <View style={styles.statsRow}>
+          <View style={styles.statChip}>
+            <Text style={styles.statLabel}>Users</Text>
+            <Text style={styles.statValue}>{stats.users}</Text>
+          </View>
+          <View style={styles.statChip}>
+            <Text style={styles.statLabel}>Restaurants</Text>
+            <Text style={styles.statValue}>{stats.restaurants}</Text>
+          </View>
+          <View style={[styles.statChip, styles.statChipDanger]}>
+            <Text style={[styles.statLabel, styles.statLabelDanger]}>Banned</Text>
+            <Text style={[styles.statValue, styles.statValueDanger]}>
+              {stats.banned}
+            </Text>
+          </View>
+        </View>
       </View>
 
       <View style={styles.tabsRow}>
@@ -343,6 +385,17 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.bg,
   },
+  iconBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...shadows.soft,
+  },
   backBtn: {
     width: 36,
     height: 36,
@@ -360,6 +413,7 @@ const styles = StyleSheet.create({
   headerTopRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     gap: spacing.sm,
   },
   heading: {
@@ -370,6 +424,41 @@ const styles = StyleSheet.create({
     ...typography.sub,
     color: colors.muted,
     marginTop: 2,
+  },
+  statsRow: {
+    marginTop: spacing.md,
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  statChip: {
+    flex: 1,
+    backgroundColor: colors.surface,
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingVertical: 10,
+    paddingHorizontal: spacing.sm,
+    ...shadows.soft,
+  },
+  statChipDanger: {
+    backgroundColor: '#FEF2F2',
+    borderColor: '#FECACA',
+  },
+  statLabel: {
+    ...typography.caption,
+    color: colors.muted,
+    fontWeight: '800',
+  },
+  statLabelDanger: {
+    color: '#B91C1C',
+  },
+  statValue: {
+    marginTop: 2,
+    ...typography.h3,
+    color: colors.text,
+  },
+  statValueDanger: {
+    color: '#B91C1C',
   },
   tabsRow: {
     flexDirection: 'row',

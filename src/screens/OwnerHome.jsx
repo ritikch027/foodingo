@@ -48,6 +48,14 @@ const OwnerHome = ({ navigation }) => {
     const hasRestaurant = Boolean(user?.restaurant);
     const base = [
       {
+        key: 'editRestaurant',
+        title: 'Restaurant Details',
+        subtitle: 'Edit name, location, banner',
+        icon: 'edit-3',
+        onPress: () => navigation.navigate('OwnerRestaurantEdit'),
+        disabled: !hasRestaurant,
+      },
+      {
         key: 'orders',
         title: 'Orders',
         subtitle: 'Track and update live orders',
@@ -74,7 +82,7 @@ const OwnerHome = ({ navigation }) => {
     ];
 
     if (!hasRestaurant) {
-      base.unshift({
+      base.splice(0, 1, {
         key: 'createRestaurant',
         title: 'Create Restaurant',
         subtitle: 'Set up your restaurant first',

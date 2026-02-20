@@ -7,15 +7,9 @@ import { UserContext } from '../utils/userContext';
 import ItemCard from '../utils/ItemCard';
 import { spacing } from '../theme';
 
-const getItemId = item =>
-  item?._id || item?.id || item?.productId?._id || item?.productId || null;
+const getItemId = item => item?._id || null;
 
-const getRestaurantId = item =>
-  item?.restaurant?._id ||
-  item?.restaurantId ||
-  item?.restaurant_id ||
-  item?.restaurant ||
-  null;
+const getRestaurantId = item => item?.restaurant || null;
 
 const ItemsGrid = ({ items, contentPaddingBottom = 160, navigation }) => {
   const insets = useSafeAreaInsets();
@@ -57,46 +51,53 @@ const ItemsGrid = ({ items, contentPaddingBottom = 160, navigation }) => {
     };
   }, [restaurantIds]);
 
-  const addToCart = useCallback(async item => {
-    try {
-      const productId = getItemId(item);
-      if (!productId) {
-        Toast.show({ type: 'error', text1: 'Invalid item', text2: 'Missing item id' });
-        return;
-      }
+  const addToCart = useCallback(
+    async item => {
+      try {
+        const productId = getItemId(item);
+        if (!productId) {
+          Toast.show({
+            type: 'error',
+            text1: 'Invalid item',
+            text2: 'Missing item id',
+          });
+          return;
+        }
 
-      const product = {
-        productId,
-        quantity: 1,
-      };
+        const product = {
+          productId,
+          quantity: 1,
+        };
 
-      const res = await api.post('/cart/add', product);
+        const res = await api.post('/cart/add', product);
 
-      if (res.data.success) {
-        getCartData();
-      } else {
+        if (res.data.success) {
+          getCartData();
+        } else {
+          Toast.show({
+            type: 'error',
+            text1: 'Failed to add to cart',
+          });
+        }
+      } catch (err) {
+        const status = err?.response?.status;
+        const message = err?.response?.data?.message;
+        const isRestaurantConflict =
+          status === 409 ||
+          (typeof message === 'string' &&
+            message.toLowerCase().includes('restaurant'));
+
         Toast.show({
-          type: 'error',
-          text1: 'Failed to add to cart',
+          type: isRestaurantConflict ? 'info' : 'error',
+          text1: message || 'Error adding to cart',
+          ...(isRestaurantConflict && {
+            text2: 'Clear cart to add items from another restaurant',
+          }),
         });
       }
-    } catch (err) {
-      const status = err?.response?.status;
-      const message = err?.response?.data?.message;
-      const isRestaurantConflict =
-        status === 409 ||
-        (typeof message === 'string' &&
-          message.toLowerCase().includes('restaurant'));
-
-      Toast.show({
-        type: isRestaurantConflict ? 'info' : 'error',
-        text1: message || 'Error adding to cart',
-        ...(isRestaurantConflict && {
-          text2: 'Clear cart to add items from another restaurant',
-        }),
-      });
-    }
-  }, [getCartData]);
+    },
+    [getCartData],
+  );
 
   const renderItem = useCallback(
     ({ item, index }) => {

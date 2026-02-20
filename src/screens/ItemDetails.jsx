@@ -1,5 +1,13 @@
 import React, { useCallback, useContext, useMemo } from 'react';
-import { Image, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  Image,
+  Pressable,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import Toast from 'react-native-toast-message';
 import api from '../utils/api';
@@ -7,15 +15,9 @@ import Counter from '../utils/counter';
 import { UserContext } from '../utils/userContext';
 import { colors, radii, spacing, typography, shadows } from '../theme';
 
-const getItemId = item =>
-  item?._id || item?.id || item?.productId?._id || item?.productId || null;
+const getItemId = item => item?._id || null;
 
-const getRestaurantName = item =>
-  item?.restaurantName ||
-  item?.restaurant?.name ||
-  item?.restaurant?.restaurantName ||
-  item?.restaurant?.title ||
-  null;
+const getRestaurantName = item => item?.restaurantName || null;
 
 const ItemDetails = ({ route, navigation }) => {
   const item = route?.params?.item;
@@ -23,7 +25,10 @@ const ItemDetails = ({ route, navigation }) => {
 
   const restaurantName = useMemo(() => getRestaurantName(item), [item]);
   const itemId = useMemo(() => getItemId(item), [item]);
-  const cartItem = useMemo(() => mappedItems.find(ci => ci._id === itemId), [itemId, mappedItems]);
+  const cartItem = useMemo(
+    () => mappedItems.find(ci => ci._id === itemId),
+    [itemId, mappedItems],
+  );
 
   const price = Number(item?.price ?? 0);
   const offerPrice = Number(item?.offerPrice ?? price ?? 0);
@@ -32,24 +37,35 @@ const ItemDetails = ({ route, navigation }) => {
   const addToCart = useCallback(async () => {
     try {
       if (!itemId) {
-        Toast.show({ type: 'error', text1: 'Invalid item', text2: 'Missing item id' });
+        Toast.show({
+          type: 'error',
+          text1: 'Invalid item',
+          text2: 'Missing item id',
+        });
         return;
       }
 
-      const res = await api.post('/cart/add', { productId: itemId, quantity: 1 });
+      const res = await api.post('/cart/add', {
+        productId: itemId,
+        quantity: 1,
+      });
       if (res.data?.success) {
         await getCartData();
         Toast.show({ type: 'snackbar', text1: 'Added to cart' });
         return;
       }
 
-      Toast.show({ type: 'error', text1: res.data?.message || 'Failed to add to cart' });
+      Toast.show({
+        type: 'error',
+        text1: res.data?.message || 'Failed to add to cart',
+      });
     } catch (err) {
       const status = err?.response?.status;
       const message = err?.response?.data?.message;
       const isRestaurantConflict =
         status === 409 ||
-        (typeof message === 'string' && message.toLowerCase().includes('restaurant'));
+        (typeof message === 'string' &&
+          message.toLowerCase().includes('restaurant'));
 
       Toast.show({
         type: isRestaurantConflict ? 'info' : 'error',
@@ -73,7 +89,10 @@ const ItemDetails = ({ route, navigation }) => {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.topBar} />
 
         <View style={styles.card}>
@@ -87,11 +106,15 @@ const ItemDetails = ({ route, navigation }) => {
 
           <View style={styles.body}>
             <Text style={styles.title}>{item?.name || 'Item'}</Text>
-            {!!restaurantName && <Text style={styles.subTitle}>{restaurantName}</Text>}
+            {!!restaurantName && (
+              <Text style={styles.subTitle}>{restaurantName}</Text>
+            )}
 
             <View style={styles.badgesRow}>
               <View style={styles.badge}>
-                <Text style={styles.badgeText}>{item?.isVeg ? '🟢 Veg' : '🔴 Non-Veg'}</Text>
+                <Text style={styles.badgeText}>
+                  {item?.isVeg ? '🟢 Veg' : '🔴 Non-Veg'}
+                </Text>
               </View>
               {!!item?.category && (
                 <View style={styles.badgeAlt}>
@@ -113,7 +136,9 @@ const ItemDetails = ({ route, navigation }) => {
               )}
               {!!item?.discountPercent && (
                 <View style={styles.discountPill}>
-                  <Text style={styles.discountText}>{item.discountPercent}% OFF</Text>
+                  <Text style={styles.discountText}>
+                    {item.discountPercent}% OFF
+                  </Text>
                 </View>
               )}
             </View>
@@ -130,7 +155,10 @@ const ItemDetails = ({ route, navigation }) => {
               ) : (
                 <Pressable
                   onPress={addToCart}
-                  style={({ pressed }) => [styles.addBtn, pressed && { opacity: 0.9 }]}
+                  style={({ pressed }) => [
+                    styles.addBtn,
+                    pressed && { opacity: 0.9 },
+                  ]}
                 >
                   <Icon name="plus" size={18} color={colors.surface} />
                   <Text style={styles.addText}>Add to cart</Text>

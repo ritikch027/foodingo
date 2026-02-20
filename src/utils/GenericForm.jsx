@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -29,18 +29,28 @@ const GenericForm = ({
   submitLabel,
   headingTxt,
   footerLink,
+  initialValues,
 }) => {
   const insets = useSafeAreaInsets();
   const scrollContentStyle = useMemo(() => {
     return [styles.container, { paddingBottom: insets.bottom + 120 }];
   }, [insets.bottom]);
 
-  const [formData, setFormData] = useState(() =>
-    fields.reduce((acc, field) => {
-      acc[field.name] = field.type === 'image' ? null : '';
+  const buildInitialFormData = useCallback(() => {
+    return fields.reduce((acc, field) => {
+      const provided = initialValues?.[field.name];
+      acc[field.name] =
+        provided !== undefined ? provided : field.type === 'image' ? null : '';
       return acc;
-    }, {}),
-  );
+    }, {});
+  }, [fields, initialValues]);
+
+  const [formData, setFormData] = useState(() => buildInitialFormData());
+
+  useEffect(() => {
+    if (!initialValues) return;
+    setFormData(buildInitialFormData());
+  }, [buildInitialFormData, initialValues]);
 
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);

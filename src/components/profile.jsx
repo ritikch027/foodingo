@@ -180,16 +180,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
   },
-  backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 999,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-  },
 
   header: {
     width: '100%',
@@ -206,7 +196,7 @@ const styles = StyleSheet.create({
   },
 
   avatarContainer: {
-    marginTop: -40,
+    marginTop: -30,
     backgroundColor: colors.surface,
     borderRadius: 60,
     padding: 4,

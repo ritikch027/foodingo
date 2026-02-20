@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState, useContext } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  useContext,
+} from 'react';
 import {
   View,
   Text,
@@ -12,6 +18,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import Icon from 'react-native-vector-icons/Feather';
 import api from '../utils/api';
@@ -23,11 +30,14 @@ const OwnerItemsEmptyState = () => (
   <View style={styles.emptyWrap}>
     <Icon name="package" size={56} color={colors.muted} />
     <Text style={styles.emptyTitle}>No items yet</Text>
-    <Text style={styles.emptyText}>Add items from the owner menu to get started.</Text>
+    <Text style={styles.emptyText}>
+      Add items from the owner menu to get started.
+    </Text>
   </View>
 );
 
 const OwnerItemsDashboard = ({ navigation }) => {
+  const insets = useSafeAreaInsets();
   const { user, foodItems, fetchCategories } = useContext(UserContext);
   const restaurantId = user?.restaurant;
 
@@ -71,7 +81,8 @@ const OwnerItemsDashboard = ({ navigation }) => {
     if (!raw) return '';
 
     const match = foodItems.find(
-      c => String(c?.category || '').toLowerCase() === String(raw).toLowerCase(),
+      c =>
+        String(c?.category || '').toLowerCase() === String(raw).toLowerCase(),
     )?.category;
 
     return match || raw;
@@ -89,8 +100,8 @@ const OwnerItemsDashboard = ({ navigation }) => {
         item?.image && typeof item.image === 'object'
           ? item.image
           : item?.image?.url
-            ? item.image
-            : null,
+          ? item.image
+          : null,
     });
   };
 
@@ -200,8 +211,6 @@ const OwnerItemsDashboard = ({ navigation }) => {
     }
   };
 
-
-
   const renderItem = ({ item }) => (
     <View style={styles.card}>
       {item?.image?.url ? (
@@ -229,8 +238,14 @@ const OwnerItemsDashboard = ({ navigation }) => {
         </Text>
 
         <View style={styles.priceRow}>
-          <Text style={styles.oldPrice}>{'\u20B9'}{item.price}</Text>
-          <Text style={styles.price}>{'\u20B9'}{item.offerPrice}</Text>
+          <Text style={styles.oldPrice}>
+            {'\u20B9'}
+            {item.price}
+          </Text>
+          <Text style={styles.price}>
+            {'\u20B9'}
+            {item.offerPrice}
+          </Text>
           <Text style={styles.discount}>{item.discountPercent}% OFF</Text>
         </View>
 
@@ -264,7 +279,23 @@ const OwnerItemsDashboard = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.topBar} />
+      <View style={[styles.topBar, { paddingTop: insets.top + spacing.sm }]}>
+        <View style={styles.topRow}>
+          <Pressable
+            onPress={() => navigation.goBack()}
+            style={({ pressed }) => [styles.backBtn, pressed && { opacity: 0.7 }]}
+          >
+            <Icon name="arrow-left" size={18} color={colors.text} />
+          </Pressable>
+
+          <Pressable
+            onPress={() => navigation.navigate('AddItem')}
+            style={({ pressed }) => [styles.backBtn, pressed && { opacity: 0.7 }]}
+          >
+            <Icon name="plus" size={18} color={colors.text} />
+          </Pressable>
+        </View>
+      </View>
 
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Manage Items</Text>
@@ -359,7 +390,9 @@ const OwnerItemsDashboard = ({ navigation }) => {
                   <Text style={styles.label}>Discount %</Text>
                   <TextInput
                     value={editingItem?.discountPercent}
-                    onChangeText={value => updateField('discountPercent', value)}
+                    onChangeText={value =>
+                      updateField('discountPercent', value)
+                    }
                     style={styles.input}
                     keyboardType="decimal-pad"
                     placeholder="0"
@@ -445,7 +478,12 @@ const styles = StyleSheet.create({
   },
   topBar: {
     paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
+    paddingBottom: spacing.sm,
+  },
+  topRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   backBtn: {
     width: 36,
@@ -456,6 +494,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.surface,
+    ...shadows.soft,
   },
 
   header: {
@@ -551,7 +590,7 @@ const styles = StyleSheet.create({
 
   categoryText: {
     ...typography.caption,
-    color: colors.muted,
+    color: 'black',
     marginTop: spacing.xs,
   },
 
