@@ -12,19 +12,19 @@ import {
   Linking,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
-import { UserContext } from '../utils/userContext';
-import { useConfirm } from '../utils/confirm';
-import { showSimpleToast } from '../utils/toast';
-import RoleHome from '../screens/RoleHome';
-import Profile from '../components/profile';
-import AddRestaurant from '../additionComponents/AddRestaurant';
-import AddItem from '../additionComponents/AddItems';
-import AddCategory from '../additionComponents/AddCategory';
-import OwnerItemsDashboard from '../screens/OwnerItemsDashboard';
-import AdminManagement from '../screens/AdminManagement';
-import UserDetails from '../screens/UserDetails';
-import RestaurantDetails from '../screens/RestaurantDetails';
-import OwnerRestaurantEdit from '../screens/OwnerRestaurantEdit';
+import { UserContext } from '../context/userContext';
+import { useConfirm } from '../shared/confirm';
+import { showSimpleToast } from '../lib/toast';
+import RoleHome from '../app/RoleHome';
+import Profile from '../features/profile/Profile';
+import AddRestaurant from '../features/owner/AddRestaurant';
+import AddItem from '../features/owner/AddItems';
+import AddCategory from '../features/admin/AddCategory';
+import OwnerItemsDashboard from '../features/owner/OwnerItemsDashboard';
+import AdminManagement from '../features/admin/AdminManagement';
+import UserDetails from '../features/admin/UserDetails';
+import RestaurantDetails from '../features/browse/RestaurantDetails';
+import OwnerRestaurantEdit from '../features/owner/OwnerRestaurantEdit';
 
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { colors, radii, spacing, typography, shadows, motion } from '../theme';

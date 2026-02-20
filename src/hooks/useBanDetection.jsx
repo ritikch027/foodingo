@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useContext } from 'react';
 import { Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import api from '../utils/api';
-import { UserContext } from '../utils/userContext';
+import api from '../lib/api';
+import { UserContext } from '../context/userContext';
 
 export const useBanDetection = () => {
   const navigation = useNavigation();
