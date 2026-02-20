@@ -70,9 +70,9 @@ Foodingo is a modern food delivery mobile app built with **React Native CLI**. I
 | ------------------------------------------ | ---------------------------------- | ---------------------------------------- |
 | ![Home](docs/screenshots/customerHome.jpg) | ![Cart](docs/screenshots/cart.jpg) | ![Profile](docs/screenshots/profile.jpg) |
 
-| Payment                                  | Checkout                                   | Order Details                                       |
+| Payment                                  | Checkout                                   | My Orders                                     |
 | ---------------------------------------- | ------------------------------------------ | --------------------------------------------------- |
-| ![Payment](docs/screenshots/payment.jpg) | ![Checkout](docs/screenshots/checkout.jpg) | ![Order Details](docs/screenshots/orderDetails.jpg) |
+| ![Payment](docs/screenshots/payment.jpg) | ![Checkout](docs/screenshots/checkout.jpg) | ![Order Details](docs/screenshots/myOrders.jpg) |
 
 ---
 
@@ -82,9 +82,9 @@ Foodingo is a modern food delivery mobile app built with **React Native CLI**. I
 | -------------------------------------------------- | -------------------------------------------------- | ------------------------------------------------- |
 | ![Owner Home](docs/screenshots/ownerDashboard.jpg) | ![Add New Items](docs/screenshots/addNewItems.jpg) | ![Manage Items](docs/screenshots/manageItems.jpg) |
 
-| Edit Restaurant                                                | Add Restaurant                                         | Restaurant Orders                                           |
+| Edit Restaurant                                                |  Order Details                                         | Restaurant Orders                                           |
 | -------------------------------------------------------------- | ------------------------------------------------------ | ----------------------------------------------------------- |
-| ![Edit Restaurant](docs/screenshots/editRestaurantDetails.jpg) | ![Add Restaurant](docs/screenshots/addRestaurant.jpg) | ![Restaurant Orders](docs/screenshots/restaurantOrders.jpg) |
+| ![Edit Restaurant](docs/screenshots/editRestaurantDetails.jpg) | ![Add Restaurant](docs/screenshots/orderDetails.jpg) | ![Restaurant Orders](docs/screenshots/restaurantOrders.jpg) |
 
 ---
 
