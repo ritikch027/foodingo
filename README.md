@@ -62,17 +62,37 @@ Foodingo is a modern food delivery mobile app built with **React Native CLI**. I
 
 ---
 
-## 🖼️ Screenshots (attach later)
+## 🖼️ Screenshots
 
-When you're ready, add screenshots under `docs/screenshots/` and update the links below.
+### 👤 Customer
 
-| Splash | Home | Cart |
-|---|---|---|
-| ![Splash](docs/screenshots/splash.png) | ![Home](docs/screenshots/home.png) | ![Cart](docs/screenshots/cart.png) |
+| Home                                       | Cart                               | Profile                                  |
+| ------------------------------------------ | ---------------------------------- | ---------------------------------------- |
+| ![Home](docs/screenshots/customerHome.jpg) | ![Cart](docs/screenshots/cart.jpg) | ![Profile](docs/screenshots/profile.jpg) |
 
-| Profile | Owner: Add Restaurant | Checkout |
-|---|---|---|
-| ![Profile](docs/screenshots/profile.png) | ![Add Restaurant](docs/screenshots/add-restaurant.png) | ![Checkout](docs/screenshots/checkout.png) |
+| Payment                                  | Checkout                                   | My Orders                                     |
+| ---------------------------------------- | ------------------------------------------ | --------------------------------------------------- |
+| ![Payment](docs/screenshots/payment.jpg) | ![Checkout](docs/screenshots/checkout.jpg) | ![Order Details](docs/screenshots/myOrders.jpg) |
+
+---
+
+### 🏪 Owner
+
+| Owner Home                                         | Add New Item                                       | Manage Items                                      |
+| -------------------------------------------------- | -------------------------------------------------- | ------------------------------------------------- |
+| ![Owner Home](docs/screenshots/ownerDashboard.jpg) | ![Add New Items](docs/screenshots/addNewItems.jpg) | ![Manage Items](docs/screenshots/manageItems.jpg) |
+
+| Edit Restaurant                                                |  Order Details                                         | Restaurant Orders                                           |
+| -------------------------------------------------------------- | ------------------------------------------------------ | ----------------------------------------------------------- |
+| ![Edit Restaurant](docs/screenshots/editRestaurantDetails.jpg) | ![Add Restaurant](docs/screenshots/orderDetails.jpg) | ![Restaurant Orders](docs/screenshots/restaurantOrders.jpg) |
+
+---
+
+### 🛠️ Admin
+
+| Admin Dashboard                                         | All Users                                            | All Restaurants                                                  |
+| ------------------------------------------------------- | ---------------------------------------------------- | ---------------------------------------------------------------- |
+| ![Admin Dashboard](docs/screenshots/adminDashboard.jpg) | ![Admin Users](docs/screenshots/adminPanelUsers.jpg) | ![Admin Restaurants](docs/screenshots/adminPanelRestaurants.jpg) |
 
 ---
 
