@@ -62,30 +62,37 @@ Foodingo is a modern food delivery mobile app built with **React Native CLI**. I
 
 ---
 
-## 🖼️ Screenshots 
+## 🖼️ Screenshots
 
-# Customer Specific
-| Home | Cart | Profile |
-|---|---|---|
+### 👤 Customer
+
+| Home                                       | Cart                               | Profile                                  |
+| ------------------------------------------ | ---------------------------------- | ---------------------------------------- |
 | ![Home](docs/screenshots/customerHome.jpg) | ![Cart](docs/screenshots/cart.jpg) | ![Profile](docs/screenshots/profile.jpg) |
-# | Payment | Checkout | Order Details |
-|---|---|---|
-| ![Payment](docs/screenshots/payment.jpg) | ![Cart](docs/screenshots/checkout.jpg) | ![Profile](docs/screenshots/orderDetails.jpg) |
 
-# Owner Specific
+| Payment                                  | Checkout                                   | Order Details                                       |
+| ---------------------------------------- | ------------------------------------------ | --------------------------------------------------- |
+| ![Payment](docs/screenshots/payment.jpg) | ![Checkout](docs/screenshots/checkout.jpg) | ![Order Details](docs/screenshots/orderDetails.jpg) |
 
-| Owner Home | Add new item | Manage Items |
-|---|---|---|
+---
+
+### 🏪 Owner
+
+| Owner Home                                         | Add New Item                                       | Manage Items                                      |
+| -------------------------------------------------- | -------------------------------------------------- | ------------------------------------------------- |
 | ![Owner Home](docs/screenshots/ownerDashBoard.jpg) | ![Add New Items](docs/screenshots/addNewItems.jpg) | ![Manage Items](docs/screenshots/manageItems.jpg) |
 
-# | Edit Restaurant Details | Owner: Add Restaurant | Restaurant Orders |
-|---|---|---|
-| ![Profile](docs/screenshots/editRestaurantDetails.jpg) | ![Add Restaurant](docs/screenshots/add-restaurant.jpg) | ![Checkout](docs/screenshots/restaurantOrders.jpg) |
+| Edit Restaurant                                                | Add Restaurant                                         | Restaurant Orders                                           |
+| -------------------------------------------------------------- | ------------------------------------------------------ | ----------------------------------------------------------- |
+| ![Edit Restaurant](docs/screenshots/editRestaurantDetails.jpg) | ![Add Restaurant](docs/screenshots/add-restaurant.jpg) | ![Restaurant Orders](docs/screenshots/restaurantOrders.jpg) |
 
-# Admin Specific
-# | Admin Dashboard | All Users | All Restaurants |
-|---|---|---|
-| ![Profile](docs/screenshots/adminDashboard.jpg) | ![Add Restaurant](docs/screenshots/adminPanelUsers.jpg) | ![Checkout](docs/screenshots/adminPanelRestaurants.jpg) |
+---
+
+### 🛠️ Admin
+
+| Admin Dashboard                                         | All Users                                            | All Restaurants                                                  |
+| ------------------------------------------------------- | ---------------------------------------------------- | ---------------------------------------------------------------- |
+| ![Admin Dashboard](docs/screenshots/adminDashboard.jpg) | ![Admin Users](docs/screenshots/adminPanelUsers.jpg) | ![Admin Restaurants](docs/screenshots/adminPanelRestaurants.jpg) |
 
 ---
 
