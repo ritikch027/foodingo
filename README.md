@@ -62,17 +62,30 @@ Foodingo is a modern food delivery mobile app built with **React Native CLI**. I
 
 ---
 
-## 🖼️ Screenshots (attach later)
+## 🖼️ Screenshots 
 
-When you're ready, add screenshots under `docs/screenshots/` and update the links below.
-
-| Splash | Home | Cart |
+# Customer Specific
+| Home | Cart | Profile |
 |---|---|---|
-| ![Splash](docs/screenshots/splash.png) | ![Home](docs/screenshots/home.png) | ![Cart](docs/screenshots/cart.png) |
-
-| Profile | Owner: Add Restaurant | Checkout |
+| ![Home](docs/screenshots/customerHome.jpg) | ![Cart](docs/screenshots/cart.jpg) | ![Profile](docs/screenshots/profile.jpg) |
+# | Payment | Checkout | Order Details |
 |---|---|---|
-| ![Profile](docs/screenshots/profile.png) | ![Add Restaurant](docs/screenshots/add-restaurant.png) | ![Checkout](docs/screenshots/checkout.png) |
+| ![Payment](docs/screenshots/payment.jpg) | ![Cart](docs/screenshots/checkout.jpg) | ![Profile](docs/screenshots/orderDetails.jpg) |
+
+# Owner Specific
+
+| Owner Home | Add new item | Manage Items |
+|---|---|---|
+| ![Owner Home](docs/screenshots/ownerDashBoard.jpg) | ![Add New Items](docs/screenshots/addNewItems.jpg) | ![Manage Items](docs/screenshots/manageItems.jpg) |
+
+# | Edit Restaurant Details | Owner: Add Restaurant | Restaurant Orders |
+|---|---|---|
+| ![Profile](docs/screenshots/editRestaurantDetails.jpg) | ![Add Restaurant](docs/screenshots/add-restaurant.jpg) | ![Checkout](docs/screenshots/restaurantOrders.jpg) |
+
+# Admin Specific
+# | Admin Dashboard | All Users | All Restaurants |
+|---|---|---|
+| ![Profile](docs/screenshots/adminDashboard.jpg) | ![Add Restaurant](docs/screenshots/adminPanelUsers.jpg) | ![Checkout](docs/screenshots/adminPanelRestaurants.jpg) |
 
 ---
 
