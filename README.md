@@ -80,11 +80,11 @@ Foodingo is a modern food delivery mobile app built with **React Native CLI**. I
 
 | Owner Home                                         | Add New Item                                       | Manage Items                                      |
 | -------------------------------------------------- | -------------------------------------------------- | ------------------------------------------------- |
-| ![Owner Home](docs/screenshots/ownerDashBoard.jpg) | ![Add New Items](docs/screenshots/addNewItems.jpg) | ![Manage Items](docs/screenshots/manageItems.jpg) |
+| ![Owner Home](docs/screenshots/ownerDashboard.jpg) | ![Add New Items](docs/screenshots/addNewItems.jpg) | ![Manage Items](docs/screenshots/manageItems.jpg) |
 
 | Edit Restaurant                                                | Add Restaurant                                         | Restaurant Orders                                           |
 | -------------------------------------------------------------- | ------------------------------------------------------ | ----------------------------------------------------------- |
-| ![Edit Restaurant](docs/screenshots/editRestaurantDetails.jpg) | ![Add Restaurant](docs/screenshots/add-restaurant.jpg) | ![Restaurant Orders](docs/screenshots/restaurantOrders.jpg) |
+| ![Edit Restaurant](docs/screenshots/editRestaurantDetails.jpg) | ![Add Restaurant](docs/screenshots/addRestaurant.jpg) | ![Restaurant Orders](docs/screenshots/restaurantOrders.jpg) |
 
 ---
 
