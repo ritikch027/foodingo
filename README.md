@@ -100,42 +100,81 @@ Foodingo is a modern food delivery mobile app built with **React Native CLI**. I
 
 ```text
 src/
-  auth components/
-    Login.jsx
-    Register.jsx
-  components/
-    Cart.jsx
-    CategoryItem.jsx
-    Profile.jsx
-    RestaurantItems.jsx
-    ...
+  app/
+    RoleHome.jsx
+  context/
+    userContext.jsx
+  features/
+    admin/
+      AddCategory.jsx
+      AdminHome.jsx
+      AdminManagement.jsx
+      UserDetails.jsx
+    auth/
+      Login.jsx
+      Register.jsx
+    browse/
+      Home.jsx
+      CategoryItem.jsx
+      RestaurantDetails.jsx
+      RestaurantItems.jsx
+      ItemDetails.jsx
+      ItemsGrid.jsx
+      RenderCategories.jsx
+      RenderOffer.jsx
+      HomeSkeleton.jsx
+    cart/
+      Cart.jsx
+      Checkout.jsx
+    orders/
+      MyOrders.jsx
+      OrderCard.jsx
+      OrderDetails.jsx
+      OrderSuccess.jsx
+      RestaurantOrders.jsx
+    owner/
+      OwnerHome.jsx
+      AddRestaurant.jsx
+      AddItems.jsx
+      OwnerItemsDashboard.jsx
+      OwnerRestaurantEdit.jsx
+    profile/
+      Profile.jsx
+      Settings.jsx
+  hooks/
+    useBanDetection.jsx
+  lib/
+    api.jsx
+    toast.js
+    toastConfig.jsx
   navigators/
     HomewithDrawer.jsx
   screens/
-    Checkout.jsx
-    MyOrders.jsx
-    OrderDetails.jsx
-    OrderSuccess.jsx
-    RestaurantOrders.jsx
-    Settings.jsx
-  utils/
-    api.jsx
-    userContext.jsx
+    OwnerHome.jsx
+  shared/
+    confirm.jsx
+    counter.jsx
+    CropUI.jsx
+    GenericForm.jsx
     ImagePicker.jsx
+    ItemCard.jsx
     Loader.jsx
+  theme/
+    index.js
+    tokens.js
 ```
 
 ---
 
 ## 🔌 Backend / API
 
-Default base URL is set in `src/utils/api.jsx`:
+Default base URL is set in `src/lib/api.jsx`:
 
 ```txt
 https://foodingo-backend-8ay1.onrender.com/api
 ```
 
-If you're running your own backend, update the `baseURL` in `src/utils/api.jsx`.
+If you're running your own backend, update the `baseURL` in `src/lib/api.jsx`.
 
 Note: there is a `.env` with `BASE_URL`, but the app currently uses the hardcoded `baseURL` above (keep them in sync if you use both).
 
@@ -147,7 +186,7 @@ If the backend is sleeping, the app may show a "kitchen is warming up" screen fo
 
 ## 🖼️ Image Upload (Cloudinary)
 
-Cloudinary config is currently hardcoded in `src/utils/ImagePicker.jsx`:
+Cloudinary config is currently hardcoded in `src/shared/ImagePicker.jsx`:
 
 - `cloudName`
 - `uploadPreset`
