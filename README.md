@@ -10,7 +10,7 @@ Foodingo is a modern food delivery mobile app built with **React Native CLI**. I
 
 ---
 ### Download from link below
-- [⬇️ Download APK](https://github.com/ritikch027/foodingo-/releases/download/v1.0.0/app-release.apk
+- [⬇️ Download APK](https://github.com/ritikch027/foodingo-/releases/download/v1.0.0/foodingo-v1.apk
 )  
 ---
 
