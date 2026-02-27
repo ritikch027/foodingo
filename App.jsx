@@ -41,8 +41,7 @@ const ServerErrorScreen = ({ onRetry }) => (
   <View style={styles.serverErrorContainer}>
     <Text style={styles.serverErrorTitle}>Hang tight - our kitchen is warming up</Text>
     <Text style={styles.serverErrorText}>
-      The Foodingo server is waking up from a quick nap. Give it a moment, then tap
-      retry.
+      Give us a moment.
     </Text>
     <Text style={styles.serverErrorSubText}>
       If it takes longer, it's probably dreaming about biryani.
